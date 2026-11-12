@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренер-бот: обучение персонала</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Rubik:wght@400;500;600;700&display=swap">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{--ink:#1E1A17;--ink2:#2B2521;--cream:#F6F1E7;--paper:#FFFCF6;--line:#E3D9C8;--tomato:#C8402F;--sun:#F0B23A;--muted:#6B5F55;--soft:#D9CFC0;--ok:#2F7A4F;--bad:#B8341F;--tg:#2AABEE}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:#1E1A17}
+  body{font-family:'Rubik',system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);min-height:100vh;
+    background:radial-gradient(circle at 80% 0%,#3B2620 0%,#1E1A17 55%) fixed;display:flex;justify-content:center}
+  .stage{width:100%;display:flex;gap:56px;justify-content:center;align-items:flex-start;padding:32px 16px}
+  .side{max-width:380px;color:var(--cream);padding-top:40px;display:none}
+  .side .eyebrow{color:var(--sun);font-weight:600;letter-spacing:2px;text-transform:uppercase;font-size:13px}
+  .side h1{font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:44px;line-height:1.05;margin:14px 0 16px}
+  .side p{color:var(--soft);line-height:1.5;font-size:16px;margin-bottom:12px}
+  .side ul{list-style:none;margin:18px 0}
+  .side li{color:var(--soft);font-size:15px;padding:8px 0;border-top:1px solid #3d3530}
+  .side li b{color:var(--cream)}
+  .side .who{margin-top:24px;font-size:14px;color:#BFB3A3}
+  @media (min-width:900px){.side{display:block}.phone{border-radius:44px;border:10px solid #0f0d0c;box-shadow:0 30px 80px rgba(0,0,0,.5)}}
+  .phone{width:100%;max-width:420px;background:var(--cream);overflow:hidden;position:relative;min-height:840px;display:flex;flex-direction:column}
+  header{background:var(--ink);color:var(--cream);padding:18px 20px 16px;position:relative;overflow:hidden}
+  header .dot1{position:absolute;right:-40px;top:-50px;width:150px;height:150px;border-radius:50%;background:var(--tomato)}
+  header .dot2{position:absolute;right:18px;top:12px;width:44px;height:44px;border-radius:50%;background:var(--sun)}
+  header .demo{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);font-weight:600;position:relative}
+  header h2{font-family:'Oswald',Arial,sans-serif;font-size:26px;text-transform:uppercase;margin-top:6px;position:relative;line-height:1.1}
+  .lvl{display:flex;align-items:center;gap:8px;margin-top:12px;position:relative;flex-wrap:wrap}
+  .badge{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--ink2);color:var(--soft);border:1px solid #3d3530;transition:.3s}
+  .badge.on{background:var(--sun);color:var(--ink);border-color:var(--sun)}
+  .pts{margin-left:auto;font-family:'Oswald',Arial,sans-serif;font-size:18px;color:var(--sun)}
+  .xp{margin-top:12px;position:relative}
+  .xp .bar{height:8px;background:#3d3530;border-radius:99px;overflow:hidden}
+  .xp .fill{height:100%;width:0;background:linear-gradient(90deg,var(--sun),var(--tomato));border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .xp .lbl{display:flex;justify-content:space-between;font-size:12px;color:#BFB3A3;margin-top:6px}
+  nav{display:flex;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  nav button{flex:1;border:0;background:none;padding:10px 2px 9px;font:600 11px 'Rubik',sans-serif;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:4px}
+  nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  nav button.on{color:var(--ink);border-bottom-color:var(--tomato)}
+  main{flex:1;padding:20px}
+  .view{display:none;animation:in .35s ease}
+  .view.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h3{font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:22px;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:14px;line-height:1.45;margin-bottom:16px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+  .tag{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
+  .route .step{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+  .route .step:first-of-type{border-top:0}
+  .route .step.click{cursor:pointer}
+  .route .n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:600 13px 'Rubik',system-ui,Arial,sans-serif;background:var(--cream);border:2px solid var(--line);color:var(--muted)}
+  .route .step.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+  .route .step.now .n{background:var(--tomato);border-color:var(--tomato);color:#fff;box-shadow:0 0 0 5px rgba(200,64,47,.18)}
+  .route b{display:block;font-size:15px}
+  .route span{font-size:13px;color:var(--muted)}
+  .route .arr{margin-left:auto;color:var(--muted);font-size:18px}
+  .btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font:600 16px 'Rubik',sans-serif;cursor:pointer;background:var(--tomato);color:#fff;transition:transform .1s}
+  .btn:active{transform:scale(.98)}
+  .btn.dark{background:var(--ink)}
+  .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+  .btn.small{padding:10px;font-size:14px;border-radius:12px}
+  .gap{height:10px}
+  .chips{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
+  .chip{flex:none;border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font:600 13px 'Rubik',system-ui,Arial,sans-serif;cursor:pointer;color:var(--ink)}
+  .chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+  .chip .ok{color:var(--ok)}
+  .chip.on .ok{color:#8fd3a8}
+  .player{position:relative;aspect-ratio:9/12;border-radius:18px;overflow:hidden;background:linear-gradient(160deg,#3B2620,#1E1A17 60%);color:var(--cream);margin-bottom:8px}
+  .player .ring{position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:var(--tomato)}
+  .player .ring2{position:absolute;right:40px;bottom:40px;width:60px;height:60px;border-radius:50%;background:var(--sun)}
+  .player .top{position:absolute;left:16px;right:16px;top:14px;display:flex;gap:4px}
+  .player .top i{flex:1;height:4px;border-radius:9px;background:rgba(255,255,255,.25);overflow:hidden}
+  .player .top i::after{content:"";display:block;height:100%;width:var(--w,0%);background:#fff}
+  .player .cap{position:absolute;left:20px;right:20px;top:50px}
+  .player .cap .k{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);font-weight:600}
+  .player .cap .t{font-family:'Oswald',Arial,sans-serif;font-size:34px;line-height:1.08;text-transform:uppercase;margin-top:8px}
+  .player .cap .d{font-size:16px;line-height:1.45;color:var(--soft);margin-top:12px;max-width:85%}
+  .player .play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(30,26,23,.45);cursor:pointer;border:0;width:100%}
+  .player .play .c{width:84px;height:84px;border-radius:50%;background:var(--cream);display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .player .play .c::after{content:"";border-left:26px solid var(--tomato);border-top:16px solid transparent;border-bottom:16px solid transparent;margin-left:6px}
+  .player .play .lab{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:13px;color:var(--soft)}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin:4px 0 14px}
+  .tips .tip{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+  .tips .tip:first-of-type{border-top:0}
+  .tips .ic{flex:none;width:28px;height:28px;border-radius:8px;background:var(--sun);display:grid;place-items:center;font:700 14px 'Oswald',Arial,sans-serif}
+  .tips .tip.crit .ic{background:var(--tomato);color:#fff}
+  .tips b{font-size:15px;display:block}
+  .tips span{font-size:13px;color:var(--muted);line-height:1.4}
+  .sticker{display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--cream);border-radius:16px;padding:14px;margin-bottom:12px}
+  .sticker .qr{flex:none;background:#fff;padding:8px;border-radius:10px;width:112px;height:112px;display:grid;place-items:center}
+  .sticker .qr img,.sticker .qr canvas{width:96px!important;height:96px!important}
+  .sticker b{font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:18px;display:block;margin-bottom:4px}
+  .sticker span{font-size:13px;color:var(--soft);line-height:1.4}
+  .qhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+  .qbar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin-bottom:16px}
+  .qbar div{height:100%;background:var(--tomato);transition:width .4s}
+  .q{font-size:19px;font-weight:600;line-height:1.35;margin-bottom:16px}
+  .opt{display:block;width:100%;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px;font:500 15px 'Rubik',sans-serif;color:var(--ink);margin-bottom:10px;cursor:pointer;transition:.2s}
+  .opt.right{border-color:var(--ok);background:#EAF4EC}
+  .opt.wrong{border-color:var(--bad);background:#FBE9E5;animation:shake .35s}
+  .opt:disabled{cursor:default}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .fb{border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.45;margin:4px 0 14px;display:none}
+  .fb.on{display:block;animation:in .3s}
+  .fb.ok{background:#EAF4EC;color:#1f5436}
+  .fb.no{background:#FBE9E5;color:#7d2416}
+  .result{text-align:center;padding:10px 0}
+  .result .big{font-family:'Oswald',Arial,sans-serif;font-size:84px;line-height:1;color:var(--tomato)}
+  .medal{width:124px;height:124px;border-radius:50%;margin:8px auto 14px;display:grid;place-items:center;text-align:center;background:var(--sun);font:700 16px/1.15 'Oswald',Arial,sans-serif;text-transform:uppercase;color:var(--ink);box-shadow:0 0 0 10px rgba(240,178,58,.25);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+  .medal.pro{background:var(--tomato);color:#fff;box-shadow:0 0 0 10px rgba(200,64,47,.25)}
+  @keyframes pop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+  .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  .shifts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+  .shifts div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .shifts div.first{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+  .shifts b{font-family:'Oswald',Arial,sans-serif;font-size:24px;display:block}
+  .shifts div.first b{color:var(--sun)}
+  .shifts span{font-size:12px;color:var(--muted)}
+  .shifts div.first span{color:var(--soft)}
+  .lb .row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);transition:background .3s}
+  .lb .row:first-of-type{border-top:0}
+  .lb .row.me{background:#FDF1D8;margin:0 -16px;padding:10px 16px}
+  .lb .pos{width:24px;font-family:'Oswald',Arial,sans-serif;font-size:18px;color:var(--muted);text-align:center}
+  .lb .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:600 14px 'Rubik',system-ui,Arial,sans-serif;color:#fff}
+  .lb .nm{flex:1;font-size:15px;font-weight:500}
+  .lb .nm small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+  .lb .sc{font-family:'Oswald',Arial,sans-serif;font-size:18px}
+  .ach{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .ach div{border:2px dashed var(--line);border-radius:14px;padding:12px 6px;text-align:center;font-size:12px;color:var(--muted);transition:.3s}
+  .ach div i{display:block;font-style:normal;font:700 22px 'Oswald',Arial,sans-serif;margin-bottom:4px}
+  .ach div.got{border:2px solid var(--sun);background:#FDF1D8;color:var(--ink)}
+  .tgwrap{background:#E9E2D4;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  .tghead{background:var(--paper);display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .tghead .av{width:38px;height:38px;border-radius:50%;background:var(--tomato);display:grid;place-items:center;color:#fff;font:700 16px 'Oswald',Arial,sans-serif}
+  .tghead b{display:block;font-size:15px}
+  .tghead span{font-size:12px;color:var(--tg)}
+  .chat{padding:14px;height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+  .msg{max-width:82%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.4;animation:in .25s ease;white-space:pre-line}
+  .msg.bot{background:var(--paper);align-self:flex-start;border-bottom-left-radius:4px}
+  .msg.me{background:#D7F0C9;align-self:flex-end;border-bottom-right-radius:4px}
+  .msg .t{display:block;font-size:10px;color:var(--muted);text-align:right;margin-top:3px}
+  .typing{align-self:flex-start;background:var(--paper);padding:10px 14px;border-radius:14px;display:flex;gap:4px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  @keyframes blink{50%{opacity:.25}}
+  .quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:var(--paper);border-top:1px solid var(--line)}
+  .quick button{border:1px solid var(--tg);color:#1b7fb3;background:#fff;border-radius:10px;padding:8px 10px;font:500 13px 'Rubik',system-ui,Arial,sans-serif;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:8px 6px;border-bottom:1px solid var(--line)}
+  td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;white-space:nowrap}
+  .pill.g{background:#EAF4EC;color:#1f5436}.pill.y{background:#FDF1D8;color:#7a5410}.pill.r{background:#FBE9E5;color:#7d2416}
+  .mini{height:6px;background:var(--line);border-radius:9px;overflow:hidden;width:70px}
+  .mini div{height:100%;background:var(--tomato);transition:width .6s}
+  .stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+  .stat div{background:var(--ink);color:var(--cream);border-radius:14px;padding:12px}
+  .stat b{font-family:'Oswald',Arial,sans-serif;font-size:28px;display:block;color:var(--sun)}
+  .stat span{font-size:11px;color:var(--soft)}
+  .alert{background:#FBE9E5;border-left:4px solid var(--tomato);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:12px}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--cream);padding:12px 18px;border-radius:12px;font-size:14px;opacity:0;transition:.3s;z-index:60;max-width:90vw;text-align:center}
+  .toast.on{opacity:1;transform:translateX(-50%)}
+  footer{padding:14px 20px 22px;font-size:12px;color:var(--muted);text-align:center}
+  footer button{background:none;border:0;color:var(--muted);text-decoration:underline;font:12px 'Rubik',system-ui,Arial,sans-serif;cursor:pointer;margin-top:6px}
+  body.tg .side{display:none!important}
+  body.tg .stage{padding:0}
+  body.tg .phone{max-width:none;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:100vh}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="side">
+    <div class="eyebrow">Демо-концепт · цифровое обучение</div>
+    <h1>Так новичок учится с телефона</h1>
+    <p>Три станции ресторана, на каждой — минутное видео, шпаргалка и тест. За прогресс начисляются баллы и уровни, а менеджер видит, кто готов к смене.</p>
+    <ul>
+      <li><b>Маршрут</b> — путь новичка на 14 дней</li>
+      <li><b>Учёба</b> — урок, шпаргалка, QR-наклейка и тест</li>
+      <li><b>Рейтинг</b> — баллы, достижения, соревнование смен</li>
+      <li><b>Бот</b> — напоминания и ответы в Telegram</li>
+      <li><b>Менеджер</b> — кто готов, кто застрял, что подтянуть</li>
+    </ul>
+    <div class="who">Роман Окшин · кандидат на позицию тренера · данные условные</div>
+  </aside>
+
+  <div class="phone">
+    <header>
+      <div class="dot1"></div><div class="dot2"></div>
+      <div class="demo">Демо · учебный модуль</div>
+      <h2 id="hello">Привет, Айгерим!</h2>
+      <div class="lvl">
+        <span class="badge on" id="b1">Новичок</span>
+        <span class="badge" id="b2">Стажёр</span>
+        <span class="badge" id="b3">Профи</span>
+        <span class="pts" id="pts">0 баллов</span>
+      </div>
+      <div class="xp">
+        <div class="bar"><div class="fill" id="xpfill"></div></div>
+        <div class="lbl"><span id="xptext">0 из 3 станций</span><span>День 2 из 14</span></div>
+      </div>
+    </header>
+
+    <nav>
+      <button class="on" data-v="route"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>Маршрут</button>
+      <button data-v="lesson"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/></svg>Учёба</button>
+      <button data-v="rating"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Рейтинг</button>
+      <button data-v="bot"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/></svg>Бот</button>
+      <button data-v="manager"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Менеджер</button>
+    </nav>
+
+    <main>
+      <section class="view on" id="route">
+        <h3>Твой маршрут</h3>
+        <p class="sub">14 дней до самостоятельной смены. Нажми на станцию, чтобы открыть урок.</p>
+        <div class="card route" id="routeList"></div>
+        <button class="btn" id="routeGo">Продолжить обучение</button>
+      </section>
+
+      <section class="view" id="lesson">
+        <div class="chips" id="chips"></div>
+        <h3 id="lTitle"></h3>
+        <p class="sub" id="lSub">Видео на 60 секунд. Смотри в перерыве или прямо на станции по QR-коду.</p>
+        <div class="player" id="player">
+          <div class="ring"></div><div class="ring2"></div>
+          <div class="top" id="segs"></div>
+          <div class="cap" id="cap"><div class="k" id="capK"></div><div class="t" id="capT"></div><div class="d" id="capD"></div></div>
+          <button class="play" id="playBtn" aria-label="Смотреть видео"><div class="c"></div><div class="lab">Нажми, чтобы посмотреть</div></button>
+        </div>
+        <p class="note">В демо вместо видео — анимированная раскадровка. Настоящий ролик снимем в ресторане.</p>
+        <div class="card tips" id="tips"></div>
+        <div class="sticker"><div class="qr" id="qr"></div><div><b id="qrTitle">Наклейка на станцию</b><span>Новичок наводит камеру — урок этой станции открывается прямо в Telegram.</span></div></div>
+        <button class="btn dark" id="toQuiz">Пройти тест</button>
+        <div id="quizBox" style="display:none;margin-top:18px">
+          <div id="qwrap">
+            <div class="qhead"><span id="qnum"></span><span>Нужно 4 из 5</span></div>
+            <div class="qbar"><div id="qbarf"></div></div>
+            <div class="q" id="qtext"></div>
+            <div id="qopts"></div>
+            <div class="fb" id="qfb"></div>
+            <button class="btn" id="qnext" style="display:none">Дальше</button>
+          </div>
+          <div class="result" id="qres" style="display:none"></div>
+        </div>
+      </section>
+
+      <section class="view" id="rating">
+        <h3>Рейтинг</h3>
+        <p class="sub">Баллы за уроки и тесты. Лучшая смена месяца получает приз от ресторана.</p>
+        <div class="tag">Соревнование смен · ноябрь</div>
+        <div class="shifts">
+          <div class="first"><b>1 240</b><span>Утро · 1 место</span></div>
+          <div><b id="shiftMe">1 080</b><span>Вечер · твоя</span></div>
+          <div><b>960</b><span>Выходные</span></div>
+        </div>
+        <div class="card lb" id="lb"></div>
+        <div class="tag">Достижения</div>
+        <div class="ach" id="ach"></div>
+      </section>
+
+      <section class="view" id="bot">
+        <h3>Telegram-бот</h3>
+        <p class="sub">Напоминает про обучение и отвечает на частые вопросы 24/7. Нажми на кнопку внизу.</p>
+        <div class="tgwrap">
+          <div class="tghead"><div class="av">Т</div><div><b>Тренер-бот ресторана</b><span>бот</span></div></div>
+          <div class="chat" id="chat"></div>
+          <div class="quick" id="quick"></div>
+        </div>
+      </section>
+
+      <section class="view" id="manager">
+        <h3>Экран менеджера</h3>
+        <p class="sub">Что видят менеджер смены и тренер. Пример данных, твоя строка обновляется по результатам.</p>
+        <div class="stat">
+          <div><b id="mReady">3</b><span>готовы к смене</span></div>
+          <div><b>6,5</b><span>дней до «Стажёра»</span></div>
+          <div><b>1</b><span>нужна помощь</span></div>
+        </div>
+        <div class="card">
+          <div class="tag">Новички ресторана</div>
+          <table>
+            <thead><tr><th>Имя</th><th>Станции</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td id="mMeName">Айгерим</td><td id="mMeSt">0/3</td><td><span class="pill y" id="mMePill">Учится</span></td></tr>
+              <tr><td>Мадина</td><td>3/3</td><td><span class="pill g">Профи</span></td></tr>
+              <tr><td>Ерлан</td><td>2/3</td><td><span class="pill g">Стажёр</span></td></tr>
+              <tr><td>Ольга</td><td>1/3</td><td><span class="pill g">Стажёр</span></td></tr>
+              <tr><td>Данияр К.</td><td>0/3</td><td><span class="pill r">Пересдача</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert"><b>Нужна помощь:</b> Данияр К. дважды не сдал тест по кассе — ошибается в вопросе про расхождение суммы.</div>
+        <button class="btn small" id="remind">Назначить разбор с наставником</button>
+        <div class="gap"></div>
+        <div class="card">
+          <div class="tag">Ресторан · прогресс по станциям</div>
+          <table id="stTable"></table>
+        </div>
+        <div class="card">
+          <div class="tag">Сеть · обучение по ресторанам</div>
+          <table>
+            <tr><td>Ресторан 1</td><td><div class="mini"><div style="width:82%"></div></div></td><td>82%</td></tr>
+            <tr><td>Ресторан 2</td><td><div class="mini"><div style="width:64%"></div></div></td><td>64%</td></tr>
+            <tr><td>Новое открытие</td><td><div class="mini"><div style="width:38%"></div></div></td><td>38%</td></tr>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer>Демо-концепт Романа Окшина · данные условные<br><button id="reset">Сбросить прогресс</button></footer>
+  </div>
+</div>
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ===== Telegram Mini App =====
+  var BOT_USERNAME='Papa_Test_tttBot';
+  var tg=(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData)?window.Telegram.WebApp:null;
+  var NAME='Айгерим';
+  if(tg){
+    document.body.classList.add('tg');
+    try{tg.ready();tg.expand();tg.setHeaderColor('#1E1A17');tg.setBackgroundColor('#F6F1E7');}catch(e){}
+    var u=tg.initDataUnsafe&&tg.initDataUnsafe.user;if(u&&u.first_name)NAME=u.first_name;
+  }
+  function haptic(kind){try{if(tg)tg.HapticFeedback.notificationOccurred(kind)}catch(e){}}
+  document.getElementById('hello').textContent='Привет, '+NAME+'!';
+  document.getElementById('mMeName').textContent=NAME;
+  var ST=[
+    {id:'cash',name:'Касса',day:'Дни 2–4',
+      scenes:[['Приветствие','Улыбка и приветствие в первые секунды, даже если ты заканчиваешь другой заказ.'],['Заказ','Уточни размер, тесто и замены. Пробивай сразу, не по памяти.'],['Допродажа','Предложи одно: напиток, соус или акцию. Коротко и по делу.'],['Повтор и время','Повтори заказ гостю и назови, через сколько он будет готов.'],['Оплата и чек','Проверь сумму, выдай чек. Не сходится — сразу к менеджеру.']],
+      tips:[['Приветствие','Сразу, даже если занят другим гостем'],['Заказ','Уточни размер, тесто, замены'],['Допродажа','Напиток, соус или акция к заказу'],['Повтор и время','Повтори заказ, назови время готовности'],['!Оплата и чек — критично','Ошибка в кассе = сразу к менеджеру смены']],
+      quiz:[
+        {q:'Гость подошёл к кассе, а ты заканчиваешь другой заказ. Что делаешь?',o:['Молча доделываю, гость подождёт','Сразу здороваюсь и прошу подождать секунду','Прошу подойти к другой кассе'],a:1,e:'Гость должен почувствовать, что его увидели, даже если ты занят.'},
+        {q:'Гость заказал только пиццу. Что предложить?',o:['Ничего, чтобы не навязываться','Напиток или соус к пицце','Вторую такую же пиццу'],a:1,e:'Одно уместное предложение к заказу — это сервис, а не навязывание.'},
+        {q:'Зачем повторять заказ гостю перед оплатой?',o:['Чтобы потянуть время','Чтобы исключить ошибку до оплаты','Смысла нет, это формальность'],a:1,e:'Ошибку дешевле поймать до оплаты, чем переделывать пиццу.'},
+        {q:'Сумма в кассе не сходится с чеком. Твои действия?',o:['Доплачу разницу из своих','Сразу сообщу менеджеру смены','Разберусь в конце смены'],a:1,e:'Это критичный пункт: любое расхождение — сразу к менеджеру.'},
+        {q:'Гость недоволен долгим ожиданием. Что скажешь?',o:['Объясню, что кухня перегружена','Извинюсь, назову точное время и предложу решение','Позову другого кассира'],a:1,e:'Гостю важны внимание, конкретное время и решение, а не причины.'}]},
+    {id:'pizza',name:'Сборка пиццы',day:'Дни 6–7',
+      scenes:[['Руки и перчатки','Перед сборкой — мытьё рук и свежие перчатки. Всегда, даже после короткого перерыва.'],['Тесто','Свежее тесто растягиваем до нужного размера, ровно и без разрывов.'],['Соус','Порция по стандарту, равномерно по кругу, бортик оставляем чистым.'],['Сыр и начинка','Всё по весу из техкарты и равномерно. Не на глаз и не «побольше».'],['Проверка','Перед печью сверь пиццу с заказом: размер, тесто, начинки, замены.']],
+      tips:[['Руки и перчатки','Мыть руки и менять перчатки перед сборкой'],['Тесто','Растянуть ровно, без разрывов'],['Соус','Порция по стандарту, бортик чистый'],['Начинка','Только по весу из техкарты'],['!Сверка с заказом — критично','Не по заказу = переделать до печи']],
+      quiz:[
+        {q:'Ты вернулся с перерыва и сразу берёшь заказ. Первое действие?',o:['Сразу начинаю собирать пиццу','Мою руки и надеваю свежие перчатки','Протираю руки салфеткой'],a:1,e:'Пищевая безопасность — критичный пункт любой аттестации.'},
+        {q:'Сколько сыра класть на пиццу?',o:['На глаз, как удобно','Побольше — гостям нравится','Ровно по весу из техкарты'],a:2,e:'Одинаковый вес — одинаковый вкус в каждом ресторане и правильная себестоимость.'},
+        {q:'Посреди смены закончился ингредиент. Что делаешь?',o:['Заменяю на похожий','Сообщаю менеджеру и предупреждаю кассу','Убираю его из пиццы молча'],a:1,e:'Касса должна знать, чтобы сразу предупреждать гостей.'},
+        {q:'Пицца собрана не по заказу, гость пока не знает. Что делаешь?',o:['Отправляю в печь — может, не заметит','Переделываю до печи','Отдаю со скидкой'],a:1,e:'Гость платит за свой заказ. Ошибку исправляем до печи.'},
+        {q:'Когда сверять пиццу с заказом?',o:['Перед отправкой в печь','После выдачи гостю','Только если гость пожалуется'],a:0,e:'Проверка перед печью экономит время, продукты и нервы гостя.'}]},
+    {id:'oven',name:'Печь и выдача',day:'Дни 8–9',
+      scenes:[['Загрузка','Пицца идёт в печь ровно, без перекоса. Следи за очередью заказов.'],['Готовность','Проверь цвет корочки и расплавленный сыр. Подгорело — не отдаём.'],['Нарезка','Чистым ножом, ровными кусками, без сдвига начинки.'],['Упаковка','Коробка, номер заказа, все допы и соусы — сверь по чеку.'],['Выдача','Назови номер, проверь состав вместе с гостем или курьером.']],
+      tips:[['Загрузка','Ровно, по очереди заказов'],['Готовность','Корочка и сыр по стандарту'],['Нарезка','Чистый нож, ровные куски'],['Упаковка','Номер, допы и соусы — по чеку'],['!Брак — критично','Подгорело или упало — переделать, не отдавать']],
+      quiz:[
+        {q:'Пицца вышла с подгоревшим краем. Что делаешь?',o:['Срезаю край и отдаю','Переделываю, гостю не отдаю','Отдаю — край почти не виден'],a:1,e:'Гость должен получить пиццу по стандарту, без компромиссов.'},
+        {q:'Нож для нарезки упал на пол. Твои действия?',o:['Протираю и продолжаю','Беру чистый нож','Ополаскиваю водой'],a:1,e:'Упавший инвентарь — сразу в мойку, в работу только чистый.'},
+        {q:'Что проверить перед тем, как закрыть коробку?',o:['Только номер заказа','Номер заказа, состав, допы и соусы','Ничего, касса уже проверила'],a:1,e:'Забытый соус — самая частая жалоба на доставку.'},
+        {q:'Курьер торопит, а заказ собран не полностью. Что делаешь?',o:['Отдаю без напитка, довезут потом','Собираю полностью и называю точное время','Прошу курьера подождать на улице'],a:1,e:'Неполный заказ = гарантированная жалоба. Лучше минута ожидания.'},
+        {q:'Гость сам забирает заказ. Как выдаёшь?',o:['Просто ставлю пакет на стойку','Называю номер и проверяю состав вместе с гостем','Отдаю тому, кто первый подошёл'],a:1,e:'Сверка при выдаче исключает путаницу заказов.'}]}
+  ];
+  var PEOPLE=[['Мадина',520,'#2F7A4F','3 станции'],['Ерлан',480,'#7A5CC8','2 станции'],['Ольга',410,'#D9673F','1 станция'],['Данияр К.',150,'#6B5F55','пересдача']];
+  var DEF={watched:{},scores:{},cur:'cash',chat:false};
+  var state=JSON.parse(JSON.stringify(DEF));
+  try{var s=JSON.parse(localStorage.getItem('demo-train-v2')||'null');if(s&&s.scores)state=s;}catch(e){}
+  function save(){try{localStorage.setItem('demo-train-v2',JSON.stringify(state));}catch(e){}}
+  function $(id){return document.getElementById(id)}
+  function passed(id){return state.scores[id]!=null&&state.scores[id]>=4}
+  function nPassed(){return ST.filter(function(s){return passed(s.id)}).length}
+  function points(){var p=0;ST.forEach(function(s){if(state.watched[s.id])p+=20;if(passed(s.id))p+=100;if(state.scores[s.id]===5)p+=50;});return p}
+  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},2600)}
+
+  // nav + hash
+  var navBtns=document.querySelectorAll('nav button');
+  function show(v){
+    document.querySelectorAll('.view').forEach(function(el){el.classList.toggle('on',el.id===v)});
+    navBtns.forEach(function(b){b.classList.toggle('on',b.dataset.v===v)});
+    if(v==='bot')startChat();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  navBtns.forEach(function(b){b.addEventListener('click',function(){show(b.dataset.v)})});
+
+  // route
+  function renderRoute(){
+    var html='<div class="step done"><div class="n">✓</div><div><b>Знакомство и гигиена</b><span>День 1 · тест сдан 5/5</span></div></div>';
+    var nowSet=false;
+    ST.forEach(function(s,i){
+      var cls='step click',n=String(i+2),sub=s.day+' · урок и тест';
+      if(passed(s.id)){cls+=' done';n='✓';sub='Сдано '+state.scores[s.id]+'/5';}
+      else if(!nowSet){cls+=' now';nowSet=true;sub='Сейчас · '+sub;}
+      html+='<div class="'+cls+'" data-st="'+s.id+'"><div class="n">'+n+'</div><div><b>Станция «'+s.name+'»</b><span>'+sub+'</span></div><div class="arr">›</div></div>';
+    });
+    html+='<div class="step'+(nPassed()===3?' now':'')+'"><div class="n">5</div><div><b>Пиковые смены и аттестация</b><span>Дни 10–14 · с тренером</span></div></div>';
+    $('routeList').innerHTML=html;
+    $('routeList').querySelectorAll('[data-st]').forEach(function(el){el.onclick=function(){openStation(el.dataset.st)}});
+  }
+  $('routeGo').onclick=function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];openStation(nx?nx.id:'cash')};
+
+  // lesson
+  var timer=null,cur=null;
+  function openStation(id){cur=ST.filter(function(s){return s.id===id})[0]||ST[0];state.cur=cur.id;save();renderLesson();show('lesson');}
+  function renderLesson(){
+    $('chips').innerHTML=ST.map(function(s){return '<button class="chip'+(s.id===cur.id?' on':'')+'" data-st="'+s.id+'">'+s.name+(passed(s.id)?' <span class="ok">✓</span>':'')+'</button>'}).join('');
+    $('chips').querySelectorAll('.chip').forEach(function(b){b.onclick=function(){cur=ST.filter(function(s){return s.id===b.dataset.st})[0];state.cur=cur.id;save();renderLesson()}});
+    $('lTitle').textContent='Станция «'+cur.name+'»';
+    clearInterval(timer);
+    var segs=$('segs');segs.innerHTML='';cur.scenes.forEach(function(){segs.appendChild(document.createElement('i'))});
+    setScene(0);var pb=$('playBtn');pb.style.display='grid';pb.querySelector('.lab').textContent=state.watched[cur.id]?'Посмотреть ещё раз':'Нажми, чтобы посмотреть';
+    $('tips').innerHTML='<div class="tag">Шпаргалка</div>'+cur.tips.map(function(t,i){var crit=t[0].charAt(0)==='!';return '<div class="tip'+(crit?' crit':'')+'"><div class="ic">'+(crit?'!':i+1)+'</div><div><b>'+(crit?t[0].slice(1):t[0])+'</b><span>'+t[1]+'</span></div></div>'}).join('');
+    $('qrTitle').textContent='Наклейка «'+cur.name+'»';
+    renderQR();
+    $('quizBox').style.display='none';$('toQuiz').style.display='block';
+  }
+  function setScene(i){
+    $('capK').textContent='Шаг '+(i+1)+' из '+cur.scenes.length;
+    $('capT').textContent=cur.scenes[i][0];$('capD').textContent=cur.scenes[i][1];
+    var c=$('cap');c.style.animation='none';void c.offsetWidth;c.style.animation='in .4s ease';
+  }
+  $('playBtn').addEventListener('click',function(){
+    var btn=this;btn.style.display='none';
+    var i=0,t=0,per=3000,tick=80,bars=$('segs').querySelectorAll('i');
+    bars.forEach(function(b){b.style.setProperty('--w','0%')});setScene(0);clearInterval(timer);
+    timer=setInterval(function(){
+      t+=tick;bars[i].style.setProperty('--w',Math.min(100,t/per*100)+'%');
+      if(t>=per){t=0;i++;
+        if(i>=cur.scenes.length){clearInterval(timer);
+          if(!state.watched[cur.id]){state.watched[cur.id]=true;save();refresh();toast('+20 баллов за урок');}
+          btn.style.display='grid';btn.querySelector('.lab').textContent='Посмотреть ещё раз';return;}
+        setScene(i);}
+    },tick);
+  });
+  function renderQR(){
+    var box=$('qr');box.innerHTML='';
+    var url='https://t.me/'+BOT_USERNAME+'?startapp='+cur.id;
+    try{ if(window.QRCode){new QRCode(box,{text:url,width:96,height:96,colorDark:'#1E1A17',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});return;} }catch(e){}
+    box.innerHTML='<span style="font:600 11px Rubik,Arial,sans-serif;color:#1E1A17;text-align:center">QR-код</span>';
+  }
+
+  // quiz
+  var qi=0,score=0,Q=null;
+  $('toQuiz').onclick=function(){this.style.display='none';$('quizBox').style.display='block';startQuiz();setTimeout(function(){$('quizBox').scrollIntoView({behavior:'smooth',block:'start'})},50)};
+  function startQuiz(){Q=cur.quiz;qi=0;score=0;$('qwrap').style.display='block';$('qres').style.display='none';renderQ();}
+  function renderQ(){
+    var it=Q[qi];$('qnum').textContent='Вопрос '+(qi+1)+' из 5';$('qbarf').style.width=(qi/5*100)+'%';$('qtext').textContent=it.q;
+    var box=$('qopts');box.innerHTML='';$('qfb').className='fb';$('qnext').style.display='none';
+    it.o.forEach(function(txt,k){
+      var b=document.createElement('button');b.className='opt';b.textContent=txt;
+      b.onclick=function(){
+        var all=box.querySelectorAll('.opt');all.forEach(function(x){x.disabled=true});all[it.a].classList.add('right');
+        var fb=$('qfb');
+        if(k===it.a){score++;haptic('success');fb.className='fb ok on';fb.textContent='Верно! '+it.e;}else{haptic('error');b.classList.add('wrong');fb.className='fb no on';fb.textContent='Не совсем. '+it.e;}
+        var nx=$('qnext');nx.style.display='block';nx.textContent=qi<4?'Дальше':'Узнать результат';
+      };
+      box.appendChild(b);
+    });
+  }
+  $('qnext').onclick=function(){
+    qi++;if(qi<5){renderQ();return;}
+    $('qbarf').style.width='100%';
+    var before=nPassed(),prev=state.scores[cur.id];
+    if(prev==null||score>prev)state.scores[cur.id]=score;save();
+    var ok=score>=4,all=nPassed()===3,r=$('qres');$('qwrap').style.display='none';r.style.display='block';
+    var next=ST.filter(function(s){return !passed(s.id)})[0];
+    if(ok){
+      r.innerHTML='<div class="big">'+score+'/5</div>'+(all&&before<3?'<div class="medal pro">Профи<br>все станции</div><h3>Уровень «Профи»!</h3><p class="sub">Все три станции сданы. Дальше — пиковые смены и аттестация с тренером.</p>':'<div class="medal">Сдано<br>'+cur.name+'</div><h3>'+(before===0?'Уровень «Стажёр»!':'Станция сдана!')+'</h3><p class="sub">Результат уже у менеджера'+(score===5?'. Бонус +50 за тест без ошибок!':'.')+'</p>')+
+        (next?'<button class="btn" id="rNext">Следующая станция: «'+next.name+'»</button>':'<button class="btn" id="rRate">Посмотреть рейтинг</button>')+'<div class="gap"></div><button class="btn ghost" id="rMan">Как это видит менеджер</button>';
+      confetti();
+    }else{
+      r.innerHTML='<div class="big">'+score+'/5</div><h3>Почти получилось</h3><p class="sub">Нужно 4 из 5. Пересмотри урок, особенно шаги с ошибками, и попробуй снова. Менеджер увидит, что нужна помощь.</p><button class="btn" id="rAgain">Пройти ещё раз</button>';
+    }
+    var e;if(e=$('rNext'))e.onclick=function(){openStation(next.id)};
+    if(e=$('rRate'))e.onclick=function(){show('rating')};
+    if(e=$('rMan'))e.onclick=function(){show('manager')};
+    if(e=$('rAgain'))e.onclick=startQuiz;
+    refresh();
+  };
+  function confetti(){
+    var c=$('confetti'),cols=['#C8402F','#F0B23A','#F6F1E7','#2F7A4F'];
+    for(var i=0;i<90;i++){var p=document.createElement('i');p.style.left=Math.random()*100+'vw';p.style.background=cols[i%4];p.style.animationDuration=(1.8+Math.random()*1.6)+'s';p.style.animationDelay=(Math.random()*.4)+'s';c.appendChild(p);}
+    setTimeout(function(){c.innerHTML=''},4000);
+  }
+
+  // rating
+  function renderRating(){
+    var me=points(),list=PEOPLE.slice();list.push([NAME+' (ты)',me,'#C8402F',nPassed()+' из 3 станций','me']);
+    list.sort(function(a,b){return b[1]-a[1]});
+    $('lb').innerHTML='<div class="tag">Новички ресторана · баллы</div>'+list.map(function(p,i){return '<div class="row'+(p[4]?' me':'')+'"><div class="pos">'+(i+1)+'</div><div class="av" style="background:'+p[2]+'">'+p[0].charAt(0)+'</div><div class="nm">'+p[0]+'<small>'+p[3]+'</small></div><div class="sc">'+p[1]+'</div></div>'}).join('');
+    $('shiftMe').textContent=(1080+me).toLocaleString('ru-RU');
+    var A=[['▶','Первый урок',Object.keys(state.watched).length>0],['✓','Первая станция',nPassed()>0],['5/5','Тест без ошибок',ST.some(function(s){return state.scores[s.id]===5})],['3','Все станции',nPassed()===3],['★','Лучший новичок',me>=520],['⚡','Смена-лидер',1080+me>1240]];
+    $('ach').innerHTML=A.map(function(a){return '<div class="'+(a[2]?'got':'')+'"><i>'+a[0]+'</i>'+a[1]+'</div>'}).join('');
+  }
+
+  // bot
+  var QA=[['Мой график','Завтра смена 10:00–18:00.\nНаставник: Данияр.\nАттестация №1 — в пятницу с тренером.'],
+    ['Что со мной дальше?',function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];return nx?'Следующий шаг — станция «'+nx.name+'». Урок на 60 секунд и тест из 5 вопросов. Открыть можно в разделе «Учёба» или по QR-коду на станции.':'Все станции сданы! Дальше — пиковые смены и аттестация с тренером. Ты молодец.'}],
+    ['Гость жалуется','1. Выслушай, не перебивай.\n2. Извинись.\n3. Назови решение или точное время.\n4. Не можешь решить сам — позови менеджера смены.'],
+    ['Позвать наставника','Готово! Данияр получил уведомление и подойдёт к твоей станции.']];
+  function addMsg(txt,who){var m=document.createElement('div');m.className='msg '+who;var d=new Date();m.textContent=txt;var t=document.createElement('span');t.className='t';t.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);m.appendChild(t);$('chat').appendChild(m);$('chat').scrollTop=1e6;}
+  function botSay(txt,delay){var ty=document.createElement('div');ty.className='typing';ty.innerHTML='<i></i><i></i><i></i>';$('chat').appendChild(ty);$('chat').scrollTop=1e6;setTimeout(function(){ty.remove();addMsg(txt,'bot')},delay||900);}
+  function startChat(){
+    if(startChat.done)return;startChat.done=true;
+    botSay('Доброе утро, '+NAME+'! Это твой тренер-бот.',600);
+    setTimeout(function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];botSay(nx?'Сегодня по плану станция «'+nx.name+'». Урок займёт 60 секунд — загляни в перерыве.':'Все станции сданы — поздравляю! Скоро аттестация с тренером.',900)},1500);
+    $('quick').innerHTML='';QA.forEach(function(qa){var b=document.createElement('button');b.textContent=qa[0];b.onclick=function(){addMsg(qa[0],'me');botSay(typeof qa[1]==='function'?qa[1]():qa[1],900)};$('quick').appendChild(b);});
+  }
+
+  // manager
+  function renderManager(){
+    var n=nPassed();$('mMeSt').textContent=n+'/3';
+    var p=$('mMePill'),anyFail=ST.some(function(s){return state.scores[s.id]!=null&&state.scores[s.id]<4});
+    if(n===3){p.className='pill g';p.textContent='Профи';}else if(n>0){p.className='pill g';p.textContent='Стажёр';}else if(anyFail){p.className='pill r';p.textContent='Пересдача';}else{p.className='pill y';p.textContent='Учится';}
+    $('mReady').textContent=String(3+(n>0?1:0));
+    var base={cash:80,pizza:60,oven:45};
+    $('stTable').innerHTML=ST.map(function(s){var v=base[s.id]+(passed(s.id)?10:0);return '<tr><td>'+s.name+'</td><td><div class="mini"><div style="width:'+v+'%"></div></div></td><td>'+v+'%</td></tr>'}).join('');
+  }
+  $('remind').onclick=function(){toast('Готово: Данияр К. и наставник получили напоминание в Telegram');};
+
+  function refresh(){
+    var n=nPassed();
+    $('xpfill').style.width=(n/3*100)+'%';$('xptext').textContent=n+' из 3 станций';
+    $('b2').classList.toggle('on',n>0);$('b3').classList.toggle('on',n===3);
+    $('pts').textContent=points()+' баллов';
+    renderRoute();renderRating();renderManager();
+    if(cur)$('chips').querySelectorAll('.chip').forEach(function(b){var s=ST.filter(function(x){return x.id===b.dataset.st})[0];b.innerHTML=s.name+(passed(s.id)?' <span class="ok">✓</span>':'')});
+  }
+  $('reset').onclick=function(){state=JSON.parse(JSON.stringify(DEF));save();startChat.done=false;$('chat').innerHTML='';cur=ST[0];renderLesson();refresh();show('route');toast('Прогресс сброшен');};
+
+  cur=ST.filter(function(s){return s.id===state.cur})[0]||ST[0];
+  renderLesson();refresh();
+  function fromHash(){var h=(location.hash||'').slice(1);if(ST.some(function(s){return s.id===h}))openStation(h);}
+  window.addEventListener('hashchange',fromHash);fromHash();
+  if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param){var sp=tg.initDataUnsafe.start_param;if(ST.some(function(s){return s.id===sp}))openStation(sp);}
+})();
+</script>
+</body>
+</html>
