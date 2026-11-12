@@ -8,64 +8,118 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  :root{--ink:#1E1A17;--ink2:#2B2521;--cream:#F6F1E7;--paper:#FFFCF6;--line:#E3D9C8;--tomato:#C8402F;--sun:#F0B23A;--muted:#6B5F55;--soft:#D9CFC0;--ok:#2F7A4F;--bad:#B8341F;--tg:#2AABEE}
+  :root{--ink:#1E1A17;--ink2:#2B2521;--cream:#F6F1E7;--paper:#FFFCF6;--line:#E3D9C8;--tomato:#C8402F;--sun:#F0B23A;--muted:#6B5F55;--soft:#D9CFC0;--ok:#2F7A4F;--bad:#B8341F;--tg:#2AABEE;
+    --f:'Rubik',system-ui,-apple-system,Segoe UI,Arial,sans-serif;--fd:'Oswald',Arial,sans-serif}
   *{box-sizing:border-box;margin:0;padding:0}
   html{background:#1E1A17}
-  body{font-family:'Rubik',system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);min-height:100vh;
-    background:radial-gradient(circle at 80% 0%,#3B2620 0%,#1E1A17 55%) fixed;display:flex;justify-content:center}
+  body{font-family:var(--f);color:var(--ink);min-height:100vh;background:radial-gradient(circle at 80% 0%,#3B2620 0%,#1E1A17 55%) fixed;display:flex;justify-content:center}
+  button,input{font-family:var(--f)}
   .stage{width:100%;display:flex;gap:56px;justify-content:center;align-items:flex-start;padding:32px 16px}
   .side{max-width:380px;color:var(--cream);padding-top:40px;display:none}
   .side .eyebrow{color:var(--sun);font-weight:600;letter-spacing:2px;text-transform:uppercase;font-size:13px}
-  .side h1{font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:44px;line-height:1.05;margin:14px 0 16px}
+  .side h1{font-family:var(--fd);text-transform:uppercase;font-size:44px;line-height:1.05;margin:14px 0 16px}
   .side p{color:var(--soft);line-height:1.5;font-size:16px;margin-bottom:12px}
-  .side ul{list-style:none;margin:18px 0}
-  .side li{color:var(--soft);font-size:15px;padding:8px 0;border-top:1px solid #3d3530}
+  .side ol{margin:18px 0 0 18px;color:var(--soft);font-size:15px;line-height:1.5}
+  .side li{padding:4px 0}
   .side li b{color:var(--cream)}
   .side .who{margin-top:24px;font-size:14px;color:#BFB3A3}
   @media (min-width:900px){.side{display:block}.phone{border-radius:44px;border:10px solid #0f0d0c;box-shadow:0 30px 80px rgba(0,0,0,.5)}}
-  .phone{width:100%;max-width:420px;background:var(--cream);overflow:hidden;position:relative;min-height:840px;display:flex;flex-direction:column}
-  header{background:var(--ink);color:var(--cream);padding:18px 20px 16px;position:relative;overflow:hidden}
+  body.tg .side{display:none!important}
+  body.tg .stage{padding:0}
+  body.tg .phone{max-width:none;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:100vh}
+  .phone{width:100%;max-width:420px;background:var(--cream);overflow:hidden;position:relative;min-height:860px;display:flex;flex-direction:column}
+  .modebar{background:#0f0d0c;color:#BFB3A3;display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12px}
+  .modebar span{flex:none}
+  .seg{display:flex;flex:1;background:var(--ink2);border-radius:10px;padding:3px}
+  .seg button{flex:1;border:0;background:none;color:var(--soft);font-weight:600;font-size:12px;padding:7px 4px;border-radius:8px;cursor:pointer}
+  .seg button.on{background:var(--sun);color:var(--ink)}
+  header{background:var(--ink);color:var(--cream);padding:16px 20px 16px;position:relative;overflow:hidden}
   header .dot1{position:absolute;right:-40px;top:-50px;width:150px;height:150px;border-radius:50%;background:var(--tomato)}
   header .dot2{position:absolute;right:18px;top:12px;width:44px;height:44px;border-radius:50%;background:var(--sun)}
   header .demo{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);font-weight:600;position:relative}
-  header h2{font-family:'Oswald',Arial,sans-serif;font-size:26px;text-transform:uppercase;margin-top:6px;position:relative;line-height:1.1}
+  header h2{font-family:var(--fd);font-size:26px;text-transform:uppercase;margin-top:6px;position:relative;line-height:1.1;max-width:78%}
+  header .meta{font-size:13px;color:#BFB3A3;margin-top:4px;position:relative}
   .lvl{display:flex;align-items:center;gap:8px;margin-top:12px;position:relative;flex-wrap:wrap}
   .badge{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--ink2);color:var(--soft);border:1px solid #3d3530;transition:.3s}
   .badge.on{background:var(--sun);color:var(--ink);border-color:var(--sun)}
-  .pts{margin-left:auto;font-family:'Oswald',Arial,sans-serif;font-size:18px;color:var(--sun)}
+  .pts{margin-left:auto;font-family:var(--fd);font-size:18px;color:var(--sun)}
   .xp{margin-top:12px;position:relative}
   .xp .bar{height:8px;background:#3d3530;border-radius:99px;overflow:hidden}
   .xp .fill{height:100%;width:0;background:linear-gradient(90deg,var(--sun),var(--tomato));border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
   .xp .lbl{display:flex;justify-content:space-between;font-size:12px;color:#BFB3A3;margin-top:6px}
   nav{display:flex;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-  nav button{flex:1;border:0;background:none;padding:10px 2px 9px;font:600 11px 'Rubik',sans-serif;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:4px}
+  nav button{flex:1;border:0;background:none;padding:10px 2px 9px;font-weight:600;font-size:11px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:4px}
   nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   nav button.on{color:var(--ink);border-bottom-color:var(--tomato)}
   main{flex:1;padding:20px}
+  .hide{display:none!important}
   .view{display:none;animation:in .35s ease}
   .view.on{display:block}
   @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  h3{font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:22px;margin-bottom:6px}
+  h3{font-family:var(--fd);text-transform:uppercase;font-size:22px;margin-bottom:6px}
   .sub{color:var(--muted);font-size:14px;line-height:1.45;margin-bottom:16px}
   .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
   .tag{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
+  .btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font-weight:600;font-size:16px;cursor:pointer;background:var(--tomato);color:#fff;transition:transform .1s}
+  .btn:active{transform:scale(.98)}
+  .btn.dark{background:var(--ink)}
+  .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+  .btn.okb{background:var(--ok)}
+  .btn.small{padding:10px;font-size:14px;border-radius:12px}
+  .btn.tgb{background:var(--tg)}
+  .row2{display:flex;gap:8px}
+  .gap{height:10px}
+  /* onboarding */
+  .steps{display:flex;gap:6px;margin-bottom:18px}
+  .steps i{flex:1;height:5px;border-radius:9px;background:var(--line)}
+  .steps i.on{background:var(--tomato)}
+  .invite{background:var(--ink);color:var(--cream);border-radius:18px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+  .invite .r{position:absolute;right:-30px;bottom:-30px;width:120px;height:120px;border-radius:50%;background:var(--tomato)}
+  .invite .r2{position:absolute;right:22px;bottom:22px;width:36px;height:36px;border-radius:50%;background:var(--sun)}
+  .invite .k{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);font-weight:600;position:relative}
+  .invite b{display:block;font-family:var(--fd);font-size:24px;text-transform:uppercase;margin:6px 0 4px;position:relative}
+  .invite span{font-size:14px;color:var(--soft);position:relative}
+  .rest{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;transition:.2s}
+  .rest.on{border-color:var(--tomato);background:#FBEDE8}
+  .rest .ic{flex:none;width:38px;height:38px;border-radius:10px;background:var(--cream);display:grid;place-items:center;font-family:var(--fd);font-size:16px}
+  .rest.on .ic{background:var(--tomato);color:#fff}
+  .rest b{display:block;font-size:15px}
+  .rest span{font-size:13px;color:var(--muted)}
+  label.f{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 6px}
+  .in{width:100%;border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:13px 14px;font-size:16px;color:var(--ink);outline:none}
+  .in:focus{border-color:var(--ink)}
+  .in.err{border-color:var(--bad)}
+  .errt{font-size:13px;color:var(--bad);margin-top:5px;display:none}
+  .errt.on{display:block}
+  .pick{display:flex;gap:8px;flex-wrap:wrap}
+  .pick button{flex:1;min-width:90px;border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--ink)}
+  .pick button.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+  .pick.err button{border-color:var(--bad)}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.45;margin:16px 0 4px;cursor:pointer}
+  .consent input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--tomato)}
+  .tgshare{margin-top:8px}
+  .wait{text-align:center;padding:16px 0 4px}
+  .clock{width:92px;height:92px;border-radius:50%;margin:6px auto 16px;border:6px solid var(--line);border-top-color:var(--tomato);animation:spin 1.4s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .summary{text-align:left;font-size:14px}
+  .summary div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .summary div:first-of-type{border-top:0}
+  .summary span{color:var(--muted)}
+  .hint{background:#FDF1D8;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.45;color:#5c4210;margin:12px 0}
+  /* route */
   .route .step{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
   .route .step:first-of-type{border-top:0}
   .route .step.click{cursor:pointer}
-  .route .n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:600 13px 'Rubik',system-ui,Arial,sans-serif;background:var(--cream);border:2px solid var(--line);color:var(--muted)}
+  .route .n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--cream);border:2px solid var(--line);color:var(--muted)}
   .route .step.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
   .route .step.now .n{background:var(--tomato);border-color:var(--tomato);color:#fff;box-shadow:0 0 0 5px rgba(200,64,47,.18)}
   .route b{display:block;font-size:15px}
   .route span{font-size:13px;color:var(--muted)}
   .route .arr{margin-left:auto;color:var(--muted);font-size:18px}
-  .btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font:600 16px 'Rubik',sans-serif;cursor:pointer;background:var(--tomato);color:#fff;transition:transform .1s}
-  .btn:active{transform:scale(.98)}
-  .btn.dark{background:var(--ink)}
-  .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
-  .btn.small{padding:10px;font-size:14px;border-radius:12px}
-  .gap{height:10px}
+  .welcome{background:#EAF4EC;border-radius:14px;padding:12px 14px;font-size:14px;color:#1f5436;margin-bottom:14px;line-height:1.45}
+  /* lesson */
   .chips{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
-  .chip{flex:none;border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font:600 13px 'Rubik',system-ui,Arial,sans-serif;cursor:pointer;color:var(--ink)}
+  .chip{flex:none;border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer;color:var(--ink)}
   .chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
   .chip .ok{color:var(--ok)}
   .chip.on .ok{color:#8fd3a8}
@@ -77,7 +131,7 @@
   .player .top i::after{content:"";display:block;height:100%;width:var(--w,0%);background:#fff}
   .player .cap{position:absolute;left:20px;right:20px;top:50px}
   .player .cap .k{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);font-weight:600}
-  .player .cap .t{font-family:'Oswald',Arial,sans-serif;font-size:34px;line-height:1.08;text-transform:uppercase;margin-top:8px}
+  .player .cap .t{font-family:var(--fd);font-size:34px;line-height:1.08;text-transform:uppercase;margin-top:8px}
   .player .cap .d{font-size:16px;line-height:1.45;color:var(--soft);margin-top:12px;max-width:85%}
   .player .play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(30,26,23,.45);cursor:pointer;border:0;width:100%}
   .player .play .c{width:84px;height:84px;border-radius:50%;background:var(--cream);display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
@@ -86,20 +140,20 @@
   .note{font-size:12px;color:var(--muted);text-align:center;margin:4px 0 14px}
   .tips .tip{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
   .tips .tip:first-of-type{border-top:0}
-  .tips .ic{flex:none;width:28px;height:28px;border-radius:8px;background:var(--sun);display:grid;place-items:center;font:700 14px 'Oswald',Arial,sans-serif}
+  .tips .ic{flex:none;width:28px;height:28px;border-radius:8px;background:var(--sun);display:grid;place-items:center;font-family:var(--fd);font-weight:700;font-size:14px}
   .tips .tip.crit .ic{background:var(--tomato);color:#fff}
   .tips b{font-size:15px;display:block}
   .tips span{font-size:13px;color:var(--muted);line-height:1.4}
   .sticker{display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--cream);border-radius:16px;padding:14px;margin-bottom:12px}
   .sticker .qr{flex:none;background:#fff;padding:8px;border-radius:10px;width:112px;height:112px;display:grid;place-items:center}
   .sticker .qr img,.sticker .qr canvas{width:96px!important;height:96px!important}
-  .sticker b{font-family:'Oswald',Arial,sans-serif;text-transform:uppercase;font-size:18px;display:block;margin-bottom:4px}
+  .sticker b{font-family:var(--fd);text-transform:uppercase;font-size:18px;display:block;margin-bottom:4px}
   .sticker span{font-size:13px;color:var(--soft);line-height:1.4}
   .qhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
   .qbar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin-bottom:16px}
   .qbar div{height:100%;background:var(--tomato);transition:width .4s}
   .q{font-size:19px;font-weight:600;line-height:1.35;margin-bottom:16px}
-  .opt{display:block;width:100%;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px;font:500 15px 'Rubik',sans-serif;color:var(--ink);margin-bottom:10px;cursor:pointer;transition:.2s}
+  .opt{display:block;width:100%;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px;font-weight:500;font-size:15px;color:var(--ink);margin-bottom:10px;cursor:pointer;transition:.2s}
   .opt.right{border-color:var(--ok);background:#EAF4EC}
   .opt.wrong{border-color:var(--bad);background:#FBE9E5;animation:shake .35s}
   .opt:disabled{cursor:default}
@@ -109,35 +163,38 @@
   .fb.ok{background:#EAF4EC;color:#1f5436}
   .fb.no{background:#FBE9E5;color:#7d2416}
   .result{text-align:center;padding:10px 0}
-  .result .big{font-family:'Oswald',Arial,sans-serif;font-size:84px;line-height:1;color:var(--tomato)}
-  .medal{width:124px;height:124px;border-radius:50%;margin:8px auto 14px;display:grid;place-items:center;text-align:center;background:var(--sun);font:700 16px/1.15 'Oswald',Arial,sans-serif;text-transform:uppercase;color:var(--ink);box-shadow:0 0 0 10px rgba(240,178,58,.25);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+  .result .big{font-family:var(--fd);font-size:84px;line-height:1;color:var(--tomato)}
+  .medal{width:124px;height:124px;border-radius:50%;margin:8px auto 14px;display:grid;place-items:center;text-align:center;background:var(--sun);font-family:var(--fd);font-weight:700;font-size:16px;line-height:1.15;text-transform:uppercase;color:var(--ink);box-shadow:0 0 0 10px rgba(240,178,58,.25);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
   .medal.pro{background:var(--tomato);color:#fff;box-shadow:0 0 0 10px rgba(200,64,47,.25)}
+  .medal.go{background:var(--ok);color:#fff;box-shadow:0 0 0 10px rgba(47,122,79,.25)}
   @keyframes pop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
   .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
   .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall linear forwards}
   @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  /* rating */
   .shifts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
   .shifts div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
   .shifts div.first{background:var(--ink);color:var(--cream);border-color:var(--ink)}
-  .shifts b{font-family:'Oswald',Arial,sans-serif;font-size:24px;display:block}
+  .shifts b{font-family:var(--fd);font-size:24px;display:block}
   .shifts div.first b{color:var(--sun)}
   .shifts span{font-size:12px;color:var(--muted)}
   .shifts div.first span{color:var(--soft)}
-  .lb .row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);transition:background .3s}
+  .lb .row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
   .lb .row:first-of-type{border-top:0}
   .lb .row.me{background:#FDF1D8;margin:0 -16px;padding:10px 16px}
-  .lb .pos{width:24px;font-family:'Oswald',Arial,sans-serif;font-size:18px;color:var(--muted);text-align:center}
-  .lb .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:600 14px 'Rubik',system-ui,Arial,sans-serif;color:#fff}
+  .lb .pos{width:24px;font-family:var(--fd);font-size:18px;color:var(--muted);text-align:center}
+  .lb .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:14px;color:#fff}
   .lb .nm{flex:1;font-size:15px;font-weight:500}
   .lb .nm small{display:block;font-size:12px;color:var(--muted);font-weight:400}
-  .lb .sc{font-family:'Oswald',Arial,sans-serif;font-size:18px}
+  .lb .sc{font-family:var(--fd);font-size:18px}
   .ach{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .ach div{border:2px dashed var(--line);border-radius:14px;padding:12px 6px;text-align:center;font-size:12px;color:var(--muted);transition:.3s}
-  .ach div i{display:block;font-style:normal;font:700 22px 'Oswald',Arial,sans-serif;margin-bottom:4px}
+  .ach div i{display:block;font-style:normal;font-family:var(--fd);font-weight:700;font-size:22px;margin-bottom:4px}
   .ach div.got{border:2px solid var(--sun);background:#FDF1D8;color:var(--ink)}
+  /* bot */
   .tgwrap{background:#E9E2D4;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
   .tghead{background:var(--paper);display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
-  .tghead .av{width:38px;height:38px;border-radius:50%;background:var(--tomato);display:grid;place-items:center;color:#fff;font:700 16px 'Oswald',Arial,sans-serif}
+  .tghead .av{width:38px;height:38px;border-radius:50%;background:var(--tomato);display:grid;place-items:center;color:#fff;font-family:var(--fd);font-weight:700;font-size:16px}
   .tghead b{display:block;font-size:15px}
   .tghead span{font-size:12px;color:var(--tg)}
   .chat{padding:14px;height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
@@ -150,147 +207,217 @@
   .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
   @keyframes blink{50%{opacity:.25}}
   .quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:var(--paper);border-top:1px solid var(--line)}
-  .quick button{border:1px solid var(--tg);color:#1b7fb3;background:#fff;border-radius:10px;padding:8px 10px;font:500 13px 'Rubik',system-ui,Arial,sans-serif;cursor:pointer}
+  .quick button{border:1px solid var(--tg);color:#1b7fb3;background:#fff;border-radius:10px;padding:8px 10px;font-weight:500;font-size:13px;cursor:pointer}
+  /* manager */
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:8px 6px;border-bottom:1px solid var(--line)}
   td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
   .pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;white-space:nowrap}
-  .pill.g{background:#EAF4EC;color:#1f5436}.pill.y{background:#FDF1D8;color:#7a5410}.pill.r{background:#FBE9E5;color:#7d2416}
+  .pill.g{background:#EAF4EC;color:#1f5436}.pill.y{background:#FDF1D8;color:#7a5410}.pill.r{background:#FBE9E5;color:#7d2416}.pill.b{background:#E3F1FA;color:#145a80}
   .mini{height:6px;background:var(--line);border-radius:9px;overflow:hidden;width:70px}
   .mini div{height:100%;background:var(--tomato);transition:width .6s}
   .stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
   .stat div{background:var(--ink);color:var(--cream);border-radius:14px;padding:12px}
-  .stat b{font-family:'Oswald',Arial,sans-serif;font-size:28px;display:block;color:var(--sun)}
+  .stat b{font-family:var(--fd);font-size:28px;display:block;color:var(--sun)}
   .stat span{font-size:11px;color:var(--soft)}
-  .alert{background:#FBE9E5;border-left:4px solid var(--tomato);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:12px}
-  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--cream);padding:12px 18px;border-radius:12px;font-size:14px;opacity:0;transition:.3s;z-index:60;max-width:90vw;text-align:center}
+  .alert{background:#FBE9E5;border-left:4px solid var(--tomato);border-radius:0;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:12px}
+  .req{border:2px solid var(--tomato);border-radius:16px;padding:14px;background:#FFF7F4;margin-bottom:12px;animation:in .35s}
+  .req .top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .req .av{width:40px;height:40px;border-radius:50%;background:var(--tomato);color:#fff;display:grid;place-items:center;font-weight:600}
+  .req b{font-size:16px;display:block}
+  .req small{font-size:12px;color:var(--muted)}
+  .req .dl{font-size:13px;margin-bottom:12px}
+  .req .dl div{display:flex;justify-content:space-between;padding:5px 0;border-top:1px dashed var(--line)}
+  .req .dl span{color:var(--muted)}
+  .empty{font-size:14px;color:var(--muted);padding:6px 0}
+  .newbadge{display:inline-block;background:var(--tomato);color:#fff;border-radius:99px;font-size:11px;font-weight:700;padding:1px 7px;margin-left:6px;vertical-align:middle}
+  .att{border:0;background:var(--ok);color:#fff;border-radius:8px;padding:5px 8px;font-weight:600;font-size:11px;cursor:pointer}
+  .att:disabled{background:#c9bba5;cursor:default}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--cream);padding:12px 18px;border-radius:12px;font-size:14px;opacity:0;transition:.3s;z-index:60;max-width:90vw;text-align:center;pointer-events:none}
   .toast.on{opacity:1;transform:translateX(-50%)}
   footer{padding:14px 20px 22px;font-size:12px;color:var(--muted);text-align:center}
-  footer button{background:none;border:0;color:var(--muted);text-decoration:underline;font:12px 'Rubik',system-ui,Arial,sans-serif;cursor:pointer;margin-top:6px}
-  body.tg .side{display:none!important}
-  body.tg .stage{padding:0}
-  body.tg .phone{max-width:none;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:100vh}
+  footer button{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:12px;cursor:pointer;margin-top:6px}
 </style>
 </head>
 <body>
 <div class="stage">
   <aside class="side">
     <div class="eyebrow">Демо-концепт · цифровое обучение</div>
-    <h1>Так новичок учится с телефона</h1>
-    <p>Три станции ресторана, на каждой — минутное видео, шпаргалка и тест. За прогресс начисляются баллы и уровни, а менеджер видит, кто готов к смене.</p>
-    <ul>
-      <li><b>Маршрут</b> — путь новичка на 14 дней</li>
-      <li><b>Учёба</b> — урок, шпаргалка, QR-наклейка и тест</li>
-      <li><b>Рейтинг</b> — баллы, достижения, соревнование смен</li>
-      <li><b>Бот</b> — напоминания и ответы в Telegram</li>
-      <li><b>Менеджер</b> — кто готов, кто застрял, что подтянуть</li>
-    </ul>
+    <h1>Как работает система</h1>
+    <p>Новичок приходит по приглашению своего ресторана, регистрируется, менеджер подтверждает — и начинается обучение с телефона.</p>
+    <ol>
+      <li><b>Приглашение</b> — QR-код ресторана</li>
+      <li><b>Регистрация</b> — имя, телефон, должность</li>
+      <li><b>Подтверждение</b> — менеджер нажимает «Да»</li>
+      <li><b>Обучение</b> — уроки, тесты, баллы, бот</li>
+      <li><b>Аттестация</b> — тренер отмечает на смене</li>
+      <li><b>Допуск</b> к самостоятельной смене</li>
+    </ol>
+    <p style="margin-top:16px">Переключатель «Сотрудник / Менеджер» сверху показывает обе стороны.</p>
     <div class="who">Роман Окшин · кандидат на позицию тренера · данные условные</div>
   </aside>
 
   <div class="phone">
-    <header>
-      <div class="dot1"></div><div class="dot2"></div>
-      <div class="demo">Демо · учебный модуль</div>
-      <h2 id="hello">Привет, Айгерим!</h2>
-      <div class="lvl">
-        <span class="badge on" id="b1">Новичок</span>
-        <span class="badge" id="b2">Стажёр</span>
-        <span class="badge" id="b3">Профи</span>
-        <span class="pts" id="pts">0 баллов</span>
-      </div>
-      <div class="xp">
-        <div class="bar"><div class="fill" id="xpfill"></div></div>
-        <div class="lbl"><span id="xptext">0 из 3 станций</span><span>День 2 из 14</span></div>
-      </div>
-    </header>
+    <div class="modebar"><span>Демо:</span><div class="seg"><button class="on" data-mode="emp">Сотрудник</button><button data-mode="mgr">Менеджер <span id="mgrBadge"></span></button></div></div>
 
-    <nav>
-      <button class="on" data-v="route"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>Маршрут</button>
-      <button data-v="lesson"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/></svg>Учёба</button>
-      <button data-v="rating"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Рейтинг</button>
-      <button data-v="bot"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/></svg>Бот</button>
-      <button data-v="manager"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Менеджер</button>
-    </nav>
+    <!-- EMPLOYEE: ONBOARDING -->
+    <div id="onb">
+      <header>
+        <div class="dot1"></div><div class="dot2"></div>
+        <div class="demo">Демо · тренер-бот</div>
+        <h2 id="onbHello">Добро пожаловать!</h2>
+        <div class="meta">Регистрация займёт 1 минуту</div>
+      </header>
+      <main>
+        <div class="steps"><i id="s1" class="on"></i><i id="s2"></i><i id="s3"></i></div>
 
-    <main>
-      <section class="view on" id="route">
-        <h3>Твой маршрут</h3>
-        <p class="sub">14 дней до самостоятельной смены. Нажми на станцию, чтобы открыть урок.</p>
-        <div class="card route" id="routeList"></div>
-        <button class="btn" id="routeGo">Продолжить обучение</button>
-      </section>
-
-      <section class="view" id="lesson">
-        <div class="chips" id="chips"></div>
-        <h3 id="lTitle"></h3>
-        <p class="sub" id="lSub">Видео на 60 секунд. Смотри в перерыве или прямо на станции по QR-коду.</p>
-        <div class="player" id="player">
-          <div class="ring"></div><div class="ring2"></div>
-          <div class="top" id="segs"></div>
-          <div class="cap" id="cap"><div class="k" id="capK"></div><div class="t" id="capT"></div><div class="d" id="capD"></div></div>
-          <button class="play" id="playBtn" aria-label="Смотреть видео"><div class="c"></div><div class="lab">Нажми, чтобы посмотреть</div></button>
-        </div>
-        <p class="note">В демо вместо видео — анимированная раскадровка. Настоящий ролик снимем в ресторане.</p>
-        <div class="card tips" id="tips"></div>
-        <div class="sticker"><div class="qr" id="qr"></div><div><b id="qrTitle">Наклейка на станцию</b><span>Новичок наводит камеру — урок этой станции открывается прямо в Telegram.</span></div></div>
-        <button class="btn dark" id="toQuiz">Пройти тест</button>
-        <div id="quizBox" style="display:none;margin-top:18px">
-          <div id="qwrap">
-            <div class="qhead"><span id="qnum"></span><span>Нужно 4 из 5</span></div>
-            <div class="qbar"><div id="qbarf"></div></div>
-            <div class="q" id="qtext"></div>
-            <div id="qopts"></div>
-            <div class="fb" id="qfb"></div>
-            <button class="btn" id="qnext" style="display:none">Дальше</button>
+        <section id="oRest">
+          <div id="inviteBox"></div>
+          <div id="restPick">
+            <h3>Где ты работаешь?</h3>
+            <p class="sub">Обычно ресторан определяется сам по QR-коду от менеджера. Если ты открыл бота без приглашения — выбери из списка.</p>
+            <div id="restList"></div>
+            <div class="errt" id="eRest">Выбери ресторан</div>
           </div>
-          <div class="result" id="qres" style="display:none"></div>
-        </div>
-      </section>
+          <div class="gap"></div>
+          <button class="btn" id="toForm">Дальше</button>
+        </section>
 
-      <section class="view" id="rating">
-        <h3>Рейтинг</h3>
-        <p class="sub">Баллы за уроки и тесты. Лучшая смена месяца получает приз от ресторана.</p>
-        <div class="tag">Соревнование смен · ноябрь</div>
-        <div class="shifts">
-          <div class="first"><b>1 240</b><span>Утро · 1 место</span></div>
-          <div><b id="shiftMe">1 080</b><span>Вечер · твоя</span></div>
-          <div><b>960</b><span>Выходные</span></div>
-        </div>
-        <div class="card lb" id="lb"></div>
-        <div class="tag">Достижения</div>
-        <div class="ach" id="ach"></div>
-      </section>
+        <section id="oForm" class="hide">
+          <h3>Расскажи о себе</h3>
+          <p class="sub" id="formRest"></p>
+          <label class="f" for="fName">Имя и фамилия</label>
+          <input class="in" id="fName" autocomplete="name" placeholder="Например: Айгерим Сериккызы">
+          <div class="errt" id="eName">Введи имя и фамилию</div>
+          <label class="f" for="fPhone">Телефон</label>
+          <input class="in" id="fPhone" type="tel" inputmode="tel" placeholder="+7 7__ ___ __ __">
+          <div class="errt" id="ePhone">Введи номер в формате +7 7XX XXX XX XX</div>
+          <button class="btn small tgb tgshare hide" id="tgPhone">Поделиться номером из Telegram</button>
+          <label class="f">Должность</label>
+          <div class="pick" id="fRole"><button data-r="Кассир">Кассир</button><button data-r="Повар">Повар</button><button data-r="Универсал">Универсал</button></div>
+          <div class="errt" id="eRole">Выбери должность</div>
+          <label class="f" for="fDate">Дата первой смены</label>
+          <input class="in" id="fDate" type="date">
+          <div class="errt" id="eDate">Укажи дату</div>
+          <label class="consent"><input type="checkbox" id="fOk"><span>Согласен на обработку персональных данных для обучения и учёта смен. <i>В демо данные остаются только на этом телефоне.</i></span></label>
+          <div class="errt" id="eOk">Нужно согласие, чтобы продолжить</div>
+          <div class="gap"></div>
+          <div class="row2"><button class="btn ghost" id="backRest" style="flex:1">Назад</button><button class="btn" id="sendReg" style="flex:2">Отправить заявку</button></div>
+        </section>
 
-      <section class="view" id="bot">
-        <h3>Telegram-бот</h3>
-        <p class="sub">Напоминает про обучение и отвечает на частые вопросы 24/7. Нажми на кнопку внизу.</p>
-        <div class="tgwrap">
-          <div class="tghead"><div class="av">Т</div><div><b>Тренер-бот ресторана</b><span>бот</span></div></div>
-          <div class="chat" id="chat"></div>
-          <div class="quick" id="quick"></div>
-        </div>
-      </section>
+        <section id="oWait" class="hide">
+          <div class="wait" id="waitBox"></div>
+        </section>
+      </main>
+    </div>
 
-      <section class="view" id="manager">
-        <h3>Экран менеджера</h3>
-        <p class="sub">Что видят менеджер смены и тренер. Пример данных, твоя строка обновляется по результатам.</p>
+    <!-- EMPLOYEE: APP -->
+    <div id="empApp" class="hide" style="display:flex;flex-direction:column;flex:1">
+      <header>
+        <div class="dot1"></div><div class="dot2"></div>
+        <div class="demo">Демо · учебный модуль</div>
+        <h2 id="hello">Привет!</h2>
+        <div class="meta" id="meta"></div>
+        <div class="lvl">
+          <span class="badge on" id="b1">Новичок</span>
+          <span class="badge" id="b2">Стажёр</span>
+          <span class="badge" id="b3">Профи</span>
+          <span class="pts" id="pts">0 баллов</span>
+        </div>
+        <div class="xp">
+          <div class="bar"><div class="fill" id="xpfill"></div></div>
+          <div class="lbl"><span id="xptext">0 из 3 станций</span><span>14 дней до смены</span></div>
+        </div>
+      </header>
+      <nav>
+        <button class="on" data-v="route"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>Маршрут</button>
+        <button data-v="lesson"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/></svg>Учёба</button>
+        <button data-v="rating"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Рейтинг</button>
+        <button data-v="bot"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/></svg>Бот</button>
+      </nav>
+      <main>
+        <section class="view on" id="route">
+          <div class="welcome hide" id="welcome"></div>
+          <h3>Твой маршрут</h3>
+          <p class="sub">14 дней до самостоятельной смены. Нажми на станцию, чтобы открыть урок.</p>
+          <div class="card route" id="routeList"></div>
+          <button class="btn" id="routeGo">Продолжить обучение</button>
+        </section>
+
+        <section class="view" id="lesson">
+          <div class="chips" id="chips"></div>
+          <h3 id="lTitle"></h3>
+          <p class="sub">Видео на 60 секунд. Смотри в перерыве или прямо на станции по QR-коду.</p>
+          <div class="player">
+            <div class="ring"></div><div class="ring2"></div>
+            <div class="top" id="segs"></div>
+            <div class="cap" id="cap"><div class="k" id="capK"></div><div class="t" id="capT"></div><div class="d" id="capD"></div></div>
+            <button class="play" id="playBtn" aria-label="Смотреть видео"><div class="c"></div><div class="lab">Нажми, чтобы посмотреть</div></button>
+          </div>
+          <p class="note">В демо вместо видео — анимированная раскадровка. Настоящий ролик снимем в ресторане.</p>
+          <div class="card tips" id="tips"></div>
+          <div class="sticker"><div class="qr" id="qr"></div><div><b id="qrTitle">Наклейка на станцию</b><span>Новичок наводит камеру — урок этой станции открывается прямо в Telegram.</span></div></div>
+          <button class="btn dark" id="toQuiz">Пройти тест</button>
+          <div id="quizBox" style="display:none;margin-top:18px">
+            <div id="qwrap">
+              <div class="qhead"><span id="qnum"></span><span>Нужно 4 из 5</span></div>
+              <div class="qbar"><div id="qbarf"></div></div>
+              <div class="q" id="qtext"></div>
+              <div id="qopts"></div>
+              <div class="fb" id="qfb"></div>
+              <button class="btn" id="qnext" style="display:none">Дальше</button>
+            </div>
+            <div class="result" id="qres" style="display:none"></div>
+          </div>
+        </section>
+
+        <section class="view" id="rating">
+          <h3>Рейтинг</h3>
+          <p class="sub">Баллы за уроки и тесты. Лучшая смена месяца получает приз от ресторана.</p>
+          <div class="tag">Соревнование смен · этот месяц</div>
+          <div class="shifts">
+            <div class="first"><b>1 240</b><span>Утро · 1 место</span></div>
+            <div><b id="shiftMe">1 080</b><span>Вечер · твоя</span></div>
+            <div><b>960</b><span>Выходные</span></div>
+          </div>
+          <div class="card lb" id="lb"></div>
+          <div class="tag">Достижения</div>
+          <div class="ach" id="ach"></div>
+        </section>
+
+        <section class="view" id="bot">
+          <h3>Telegram-бот</h3>
+          <p class="sub">Напоминает про обучение и отвечает на частые вопросы 24/7. Нажми на кнопку внизу.</p>
+          <div class="tgwrap">
+            <div class="tghead"><div class="av">Т</div><div><b>Тренер-бот ресторана</b><span>бот</span></div></div>
+            <div class="chat" id="chat"></div>
+            <div class="quick" id="quick"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- MANAGER -->
+    <div id="mgrApp" class="hide">
+      <header>
+        <div class="dot1"></div><div class="dot2"></div>
+        <div class="demo">Демо · экран менеджера</div>
+        <h2>Менеджер смены</h2>
+        <div class="meta" id="mgrRest"></div>
+      </header>
+      <main>
+        <div class="tag">Заявки на регистрацию</div>
+        <div id="reqBox"></div>
         <div class="stat">
-          <div><b id="mReady">3</b><span>готовы к смене</span></div>
-          <div><b>6,5</b><span>дней до «Стажёра»</span></div>
+          <div><b id="mReady">3</b><span>допущены к смене</span></div>
+          <div><b id="mLearn">2</b><span>учатся сейчас</span></div>
           <div><b>1</b><span>нужна помощь</span></div>
         </div>
         <div class="card">
           <div class="tag">Новички ресторана</div>
           <table>
             <thead><tr><th>Имя</th><th>Станции</th><th>Статус</th></tr></thead>
-            <tbody>
-              <tr><td id="mMeName">Айгерим</td><td id="mMeSt">0/3</td><td><span class="pill y" id="mMePill">Учится</span></td></tr>
-              <tr><td>Мадина</td><td>3/3</td><td><span class="pill g">Профи</span></td></tr>
-              <tr><td>Ерлан</td><td>2/3</td><td><span class="pill g">Стажёр</span></td></tr>
-              <tr><td>Ольга</td><td>1/3</td><td><span class="pill g">Стажёр</span></td></tr>
-              <tr><td>Данияр К.</td><td>0/3</td><td><span class="pill r">Пересдача</span></td></tr>
-            </tbody>
+            <tbody id="mBody"></tbody>
           </table>
         </div>
         <div class="alert"><b>Нужна помощь:</b> Данияр К. дважды не сдал тест по кассе — ошибается в вопросе про расхождение суммы.</div>
@@ -300,17 +427,11 @@
           <div class="tag">Ресторан · прогресс по станциям</div>
           <table id="stTable"></table>
         </div>
-        <div class="card">
-          <div class="tag">Сеть · обучение по ресторанам</div>
-          <table>
-            <tr><td>Ресторан 1</td><td><div class="mini"><div style="width:82%"></div></div></td><td>82%</td></tr>
-            <tr><td>Ресторан 2</td><td><div class="mini"><div style="width:64%"></div></div></td><td>64%</td></tr>
-            <tr><td>Новое открытие</td><td><div class="mini"><div style="width:38%"></div></div></td><td>38%</td></tr>
-          </table>
-        </div>
-      </section>
-    </main>
-    <footer>Демо-концепт Романа Окшина · данные условные<br><button id="reset">Сбросить прогресс</button></footer>
+        <div class="sticker"><div class="qr" id="qrInvite"></div><div><b>Приглашение в ресторан</b><span>Дай этот QR новичку в первый день — ресторан подставится в регистрацию сам.</span></div></div>
+      </main>
+    </div>
+
+    <footer>Демо-концепт Романа Окшина · данные условные<br><button id="reset">Начать демо заново</button></footer>
   </div>
 </div>
 <div class="confetti" id="confetti"></div>
@@ -318,18 +439,15 @@
 
 <script>
 (function(){
-  // ===== Telegram Mini App =====
-  var BOT_USERNAME='Papa_Test_tttBot';
+  var BOT='Papa_Test_tttBot';
   var tg=(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData)?window.Telegram.WebApp:null;
-  var NAME='Айгерим';
-  if(tg){
-    document.body.classList.add('tg');
-    try{tg.ready();tg.expand();tg.setHeaderColor('#1E1A17');tg.setBackgroundColor('#F6F1E7');}catch(e){}
-    var u=tg.initDataUnsafe&&tg.initDataUnsafe.user;if(u&&u.first_name)NAME=u.first_name;
-  }
-  function haptic(kind){try{if(tg)tg.HapticFeedback.notificationOccurred(kind)}catch(e){}}
-  document.getElementById('hello').textContent='Привет, '+NAME+'!';
-  document.getElementById('mMeName').textContent=NAME;
+  var tgUser=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;
+  if(tg){document.body.classList.add('tg');try{tg.ready();tg.expand();tg.setHeaderColor('#0f0d0c');tg.setBackgroundColor('#F6F1E7');}catch(e){}}
+  function haptic(k){try{if(tg)tg.HapticFeedback.notificationOccurred(k)}catch(e){}}
+  function $(id){return document.getElementById(id)}
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+  var RESTS=[{id:'r1',name:'Ресторан 1',addr:'пр. Аль-Фараби',ic:'1'},{id:'r2',name:'Ресторан 2',addr:'пр. Абая',ic:'2'},{id:'r3',name:'Новое открытие',addr:'запуск через 3 недели',ic:'Н'}];
   var ST=[
     {id:'cash',name:'Касса',day:'Дни 2–4',
       scenes:[['Приветствие','Улыбка и приветствие в первые секунды, даже если ты заканчиваешь другой заказ.'],['Заказ','Уточни размер, тесто и замены. Пробивай сразу, не по памяти.'],['Допродажа','Предложи одно: напиток, соус или акцию. Коротко и по делу.'],['Повтор и время','Повтори заказ гостю и назови, через сколько он будет готов.'],['Оплата и чек','Проверь сумму, выдай чек. Не сходится — сразу к менеджеру.']],
@@ -360,17 +478,104 @@
         {q:'Гость сам забирает заказ. Как выдаёшь?',o:['Просто ставлю пакет на стойку','Называю номер и проверяю состав вместе с гостем','Отдаю тому, кто первый подошёл'],a:1,e:'Сверка при выдаче исключает путаницу заказов.'}]}
   ];
   var PEOPLE=[['Мадина',520,'#2F7A4F','3 станции'],['Ерлан',480,'#7A5CC8','2 станции'],['Ольга',410,'#D9673F','1 станция'],['Данияр К.',150,'#6B5F55','пересдача']];
-  var DEF={watched:{},scores:{},cur:'cash',chat:false};
-  var state=JSON.parse(JSON.stringify(DEF));
-  try{var s=JSON.parse(localStorage.getItem('demo-train-v2')||'null');if(s&&s.scores)state=s;}catch(e){}
-  function save(){try{localStorage.setItem('demo-train-v2',JSON.stringify(state));}catch(e){}}
-  function $(id){return document.getElementById(id)}
+  var KEY='trainer-demo-v3';
+  function fresh(){return {mode:'emp',reg:null,inviteRest:null,watched:{},scores:{},attested:false,cur:'cash',greeted:false}}
+  var state=fresh();
+  try{var s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.scores)state=s;}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},2600)}
+  function rest(id){return RESTS.filter(function(r){return r.id===id})[0]}
+  function NAME(){if(state.reg&&state.reg.name)return state.reg.name.split(' ')[0];if(tgUser&&tgUser.first_name)return tgUser.first_name;return 'Айгерим'}
   function passed(id){return state.scores[id]!=null&&state.scores[id]>=4}
   function nPassed(){return ST.filter(function(s){return passed(s.id)}).length}
-  function points(){var p=0;ST.forEach(function(s){if(state.watched[s.id])p+=20;if(passed(s.id))p+=100;if(state.scores[s.id]===5)p+=50;});return p}
-  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},2600)}
+  function points(){var p=0;ST.forEach(function(s){if(state.watched[s.id])p+=20;if(passed(s.id))p+=100;if(state.scores[s.id]===5)p+=50;});if(state.attested)p+=200;return p}
+  function approved(){return state.reg&&state.reg.status==='approved'}
 
-  // nav + hash
+  // ---------- start params (invite / station) ----------
+  var startParam=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||(location.hash||'').slice(1);
+  if(rest(startParam)&&!state.reg){state.inviteRest=startParam;save();}
+
+  // ---------- mode ----------
+  document.querySelectorAll('.seg button').forEach(function(b){b.onclick=function(){setMode(b.dataset.mode)}});
+  function setMode(m){state.mode=m;save();render();window.scrollTo({top:0,behavior:'smooth'});}
+  function render(){
+    document.querySelectorAll('.seg button').forEach(function(b){b.classList.toggle('on',b.dataset.mode===state.mode)});
+    var pending=state.reg&&state.reg.status==='pending';
+    $('mgrBadge').innerHTML=pending?'<span class="newbadge">1</span>':'';
+    var emp=state.mode==='emp';
+    $('mgrApp').classList.toggle('hide',emp);
+    $('onb').classList.toggle('hide',!emp||approved());
+    $('empApp').classList.toggle('hide',!emp||!approved());
+    if(emp&&!approved())renderOnb();
+    if(emp&&approved())refresh();
+    if(!emp)renderManager();
+  }
+
+  // ---------- onboarding ----------
+  var sel=null,role=null;
+  function stepBar(n){[1,2,3].forEach(function(i){$('s'+i).classList.toggle('on',i<=n)})}
+  function renderOnb(){
+    $('onbHello').textContent=tgUser&&tgUser.first_name?'Привет, '+tgUser.first_name+'!':'Добро пожаловать!';
+    var st=state.reg&&state.reg.status;
+    $('oRest').classList.toggle('hide',!!st);$('oForm').classList.add('hide');$('oWait').classList.toggle('hide',!st);
+    if(st){stepBar(3);renderWait();return;}
+    stepBar(1);
+    sel=sel||state.inviteRest;
+    if(state.inviteRest){
+      var r=rest(state.inviteRest);
+      $('inviteBox').innerHTML='<div class="invite"><div class="r"></div><div class="r2"></div><div class="k">Тебя пригласил ресторан</div><b>'+r.name+'</b><span>'+r.addr+' · определено по QR-коду</span></div>';
+      $('restPick').classList.add('hide');
+    }else{$('inviteBox').innerHTML='';$('restPick').classList.remove('hide');}
+    $('restList').innerHTML=RESTS.map(function(r){return '<button class="rest'+(sel===r.id?' on':'')+'" data-id="'+r.id+'"><div class="ic">'+r.ic+'</div><div><b>'+r.name+'</b><span>'+r.addr+'</span></div></button>'}).join('');
+    $('restList').querySelectorAll('.rest').forEach(function(b){b.onclick=function(){sel=b.dataset.id;$('eRest').classList.remove('on');renderOnb();}});
+  }
+  $('toForm').onclick=function(){
+    if(!sel){$('eRest').classList.add('on');return;}
+    $('oRest').classList.add('hide');$('oForm').classList.remove('hide');stepBar(2);
+    var r=rest(sel);$('formRest').textContent=r.name+' · '+r.addr;
+    if(!$('fName').value){$('fName').value=tgUser?[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' '):'';}
+    if(!$('fDate').value){var d=new Date();d.setDate(d.getDate()+1);$('fDate').value=d.toISOString().slice(0,10);}
+    if(tg&&tg.requestContact)$('tgPhone').classList.remove('hide');
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  $('backRest').onclick=function(){$('oForm').classList.add('hide');$('oRest').classList.remove('hide');stepBar(1);};
+  $('fRole').querySelectorAll('button').forEach(function(b){b.onclick=function(){role=b.dataset.r;$('fRole').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)});$('fRole').classList.remove('err');$('eRole').classList.remove('on');}});
+  ['fName','fPhone','fDate'].forEach(function(id){$(id).addEventListener('input',function(){$(id).classList.remove('err');$('e'+id.slice(1)).classList.remove('on');})});
+  $('fOk').addEventListener('change',function(){$('eOk').classList.remove('on')});
+  $('fPhone').addEventListener('blur',function(){var d=this.value.replace(/\D/g,'');if(d.length===11&&(d[0]==='7'||d[0]==='8')){d='7'+d.slice(1);this.value='+7 '+d.slice(1,4)+' '+d.slice(4,7)+' '+d.slice(7,9)+' '+d.slice(9,11);}});
+  $('tgPhone').onclick=function(){
+    try{tg.requestContact(function(ok,resp){
+      if(!ok){toast('Номер можно ввести вручную');return;}
+      var c=resp&&resp.responseUnsafe&&resp.responseUnsafe.contact;
+      if(c&&c.phone_number){var d=String(c.phone_number).replace(/\D/g,'');$('fPhone').value='+'+d;}else{$('fPhone').value='Отправлен через Telegram';}
+      $('fPhone').classList.remove('err');$('ePhone').classList.remove('on');haptic('success');
+    });}catch(e){toast('Номер можно ввести вручную');}
+  };
+  $('sendReg').onclick=function(){
+    var ok=true,name=$('fName').value.trim(),phone=$('fPhone').value.trim(),date=$('fDate').value;
+    if(name.split(/\s+/).filter(Boolean).length<2){$('fName').classList.add('err');$('eName').classList.add('on');ok=false;}
+    var pd=phone.replace(/\D/g,'');
+    if(!(phone==='Отправлен через Telegram'||(pd.length===11&&(pd[0]==='7'||pd[0]==='8')))){$('fPhone').classList.add('err');$('ePhone').classList.add('on');ok=false;}
+    if(!role){$('fRole').classList.add('err');$('eRole').classList.add('on');ok=false;}
+    if(!date){$('fDate').classList.add('err');$('eDate').classList.add('on');ok=false;}
+    if(!$('fOk').checked){$('eOk').classList.add('on');ok=false;}
+    if(!ok){haptic('error');return;}
+    state.reg={name:name,phone:phone,role:role,date:date,rest:sel,status:'pending',at:Date.now()};save();haptic('success');render();
+  };
+  function fmtDate(d){try{return new Date(d+'T00:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}catch(e){return d}}
+  function renderWait(){
+    var r=state.reg,rs=rest(r.rest);
+    if(r.status==='rejected'){
+      $('waitBox').innerHTML='<div class="medal" style="background:var(--line)">Заявка<br>отклонена</div><h3>Нужно уточнить данные</h3><p class="sub">Менеджер ресторана отклонил заявку. Подойди к нему и подай заявку заново.</p><button class="btn" id="again">Подать заново</button>';
+      $('again').onclick=function(){state.reg=null;save();render();};return;
+    }
+    $('waitBox').innerHTML='<div class="clock"></div><h3>Заявка отправлена</h3><p class="sub">Менеджер ресторана «'+esc(rs.name)+'» подтвердит регистрацию. Бот пришлёт уведомление, и откроется обучение.</p>'+
+      '<div class="card summary"><div><span>Имя</span><b>'+esc(r.name)+'</b></div><div><span>Должность</span><b>'+esc(r.role)+'</b></div><div><span>Ресторан</span><b>'+esc(rs.name)+'</b></div><div><span>Первая смена</span><b>'+fmtDate(r.date)+'</b></div></div>'+
+      '<div class="hint">Демо: переключись в режим «Менеджер» сверху и подтверди заявку.</div><button class="btn dark" id="goMgr">Открыть экран менеджера</button>';
+    $('goMgr').onclick=function(){setMode('mgr')};
+  }
+
+  // ---------- employee app ----------
   var navBtns=document.querySelectorAll('nav button');
   function show(v){
     document.querySelectorAll('.view').forEach(function(el){el.classList.toggle('on',el.id===v)});
@@ -379,10 +584,8 @@
     window.scrollTo({top:0,behavior:'smooth'});
   }
   navBtns.forEach(function(b){b.addEventListener('click',function(){show(b.dataset.v)})});
-
-  // route
   function renderRoute(){
-    var html='<div class="step done"><div class="n">✓</div><div><b>Знакомство и гигиена</b><span>День 1 · тест сдан 5/5</span></div></div>';
+    var html='<div class="step done"><div class="n">✓</div><div><b>Регистрация и знакомство</b><span>Наставник: Данияр</span></div></div>';
     var nowSet=false;
     ST.forEach(function(s,i){
       var cls='step click',n=String(i+2),sub=s.day+' · урок и тест';
@@ -390,13 +593,19 @@
       else if(!nowSet){cls+=' now';nowSet=true;sub='Сейчас · '+sub;}
       html+='<div class="'+cls+'" data-st="'+s.id+'"><div class="n">'+n+'</div><div><b>Станция «'+s.name+'»</b><span>'+sub+'</span></div><div class="arr">›</div></div>';
     });
-    html+='<div class="step'+(nPassed()===3?' now':'')+'"><div class="n">5</div><div><b>Пиковые смены и аттестация</b><span>Дни 10–14 · с тренером</span></div></div>';
+    var all=nPassed()===3;
+    html+='<div class="step'+(state.attested?' done':(all?' now':''))+'"><div class="n">'+(state.attested?'✓':'5')+'</div><div><b>Аттестация на смене</b><span>'+(state.attested?'Пройдена · отметил тренер':(all?'Сейчас · тренер проверит по чек-листу':'Дни 10–13 · с тренером'))+'</span></div></div>';
+    html+='<div class="step'+(state.attested?' done':'')+'"><div class="n">'+(state.attested?'✓':'6')+'</div><div><b>Допуск к самостоятельной смене</b><span>'+(state.attested?'Ты в графике!':'День 14')+'</span></div></div>';
     $('routeList').innerHTML=html;
     $('routeList').querySelectorAll('[data-st]').forEach(function(el){el.onclick=function(){openStation(el.dataset.st)}});
+    var w=$('welcome');
+    if(state.attested){w.innerHTML='<b>Поздравляем!</b> Ты допущен к самостоятельной смене. Следующая встреча с тренером — через 30 дней.';w.classList.remove('hide');}
+    else if(nPassed()===0&&!Object.keys(state.watched).length){w.innerHTML='<b>Регистрация подтверждена.</b> Менеджер ждёт тебя на смене '+fmtDate(state.reg.date)+'. А пока начни с первого урока.';w.classList.remove('hide');}
+    else w.classList.add('hide');
+    $('routeGo').textContent=state.attested?'Посмотреть рейтинг':'Продолжить обучение';
   }
-  $('routeGo').onclick=function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];openStation(nx?nx.id:'cash')};
+  $('routeGo').onclick=function(){if(state.attested){show('rating');return;}var nx=ST.filter(function(s){return !passed(s.id)})[0];if(nx)openStation(nx.id);else{toast('Все станции сданы — ждём аттестацию с тренером');}};
 
-  // lesson
   var timer=null,cur=null;
   function openStation(id){cur=ST.filter(function(s){return s.id===id})[0]||ST[0];state.cur=cur.id;save();renderLesson();show('lesson');}
   function renderLesson(){
@@ -408,14 +617,10 @@
     setScene(0);var pb=$('playBtn');pb.style.display='grid';pb.querySelector('.lab').textContent=state.watched[cur.id]?'Посмотреть ещё раз':'Нажми, чтобы посмотреть';
     $('tips').innerHTML='<div class="tag">Шпаргалка</div>'+cur.tips.map(function(t,i){var crit=t[0].charAt(0)==='!';return '<div class="tip'+(crit?' crit':'')+'"><div class="ic">'+(crit?'!':i+1)+'</div><div><b>'+(crit?t[0].slice(1):t[0])+'</b><span>'+t[1]+'</span></div></div>'}).join('');
     $('qrTitle').textContent='Наклейка «'+cur.name+'»';
-    renderQR();
+    drawQR($('qr'),'https://t.me/'+BOT+'?startapp='+cur.id);
     $('quizBox').style.display='none';$('toQuiz').style.display='block';
   }
-  function setScene(i){
-    $('capK').textContent='Шаг '+(i+1)+' из '+cur.scenes.length;
-    $('capT').textContent=cur.scenes[i][0];$('capD').textContent=cur.scenes[i][1];
-    var c=$('cap');c.style.animation='none';void c.offsetWidth;c.style.animation='in .4s ease';
-  }
+  function setScene(i){$('capK').textContent='Шаг '+(i+1)+' из '+cur.scenes.length;$('capT').textContent=cur.scenes[i][0];$('capD').textContent=cur.scenes[i][1];var c=$('cap');c.style.animation='none';void c.offsetWidth;c.style.animation='in .4s ease';}
   $('playBtn').addEventListener('click',function(){
     var btn=this;btn.style.display='none';
     var i=0,t=0,per=3000,tick=80,bars=$('segs').querySelectorAll('i');
@@ -429,14 +634,12 @@
         setScene(i);}
     },tick);
   });
-  function renderQR(){
-    var box=$('qr');box.innerHTML='';
-    var url='https://t.me/'+BOT_USERNAME+'?startapp='+cur.id;
-    try{ if(window.QRCode){new QRCode(box,{text:url,width:96,height:96,colorDark:'#1E1A17',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});return;} }catch(e){}
-    box.innerHTML='<span style="font:600 11px Rubik,Arial,sans-serif;color:#1E1A17;text-align:center">QR-код</span>';
+  function drawQR(box,url){
+    box.innerHTML='';
+    try{if(window.QRCode){new QRCode(box,{text:url,width:96,height:96,colorDark:'#1E1A17',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});return;}}catch(e){}
+    box.innerHTML='<span style="font-size:11px;font-weight:600;color:#1E1A17;text-align:center">QR-код</span>';
   }
 
-  // quiz
   var qi=0,score=0,Q=null;
   $('toQuiz').onclick=function(){this.style.display='none';$('quizBox').style.display='block';startQuiz();setTimeout(function(){$('quizBox').scrollIntoView({behavior:'smooth',block:'start'})},50)};
   function startQuiz(){Q=cur.quiz;qi=0;score=0;$('qwrap').style.display='block';$('qres').style.display='none';renderQ();}
@@ -462,15 +665,15 @@
     var ok=score>=4,all=nPassed()===3,r=$('qres');$('qwrap').style.display='none';r.style.display='block';
     var next=ST.filter(function(s){return !passed(s.id)})[0];
     if(ok){
-      r.innerHTML='<div class="big">'+score+'/5</div>'+(all&&before<3?'<div class="medal pro">Профи<br>все станции</div><h3>Уровень «Профи»!</h3><p class="sub">Все три станции сданы. Дальше — пиковые смены и аттестация с тренером.</p>':'<div class="medal">Сдано<br>'+cur.name+'</div><h3>'+(before===0?'Уровень «Стажёр»!':'Станция сдана!')+'</h3><p class="sub">Результат уже у менеджера'+(score===5?'. Бонус +50 за тест без ошибок!':'.')+'</p>')+
-        (next?'<button class="btn" id="rNext">Следующая станция: «'+next.name+'»</button>':'<button class="btn" id="rRate">Посмотреть рейтинг</button>')+'<div class="gap"></div><button class="btn ghost" id="rMan">Как это видит менеджер</button>';
+      r.innerHTML='<div class="big">'+score+'/5</div>'+(all&&before<3?'<div class="medal pro">Профи<br>все станции</div><h3>Уровень «Профи»!</h3><p class="sub">Все три станции сданы. Дальше — аттестация на смене: тренер проверит по чек-листу.</p>':'<div class="medal">Сдано<br>'+cur.name+'</div><h3>'+(before===0?'Уровень «Стажёр»!':'Станция сдана!')+'</h3><p class="sub">Результат уже у менеджера'+(score===5?'. Бонус +50 за тест без ошибок!':'.')+'</p>')+
+        (next?'<button class="btn" id="rNext">Следующая станция: «'+next.name+'»</button>':'<button class="btn" id="rMgr">Как тренер отмечает аттестацию</button>')+'<div class="gap"></div><button class="btn ghost" id="rRoute">К маршруту</button>';
       confetti();
     }else{
       r.innerHTML='<div class="big">'+score+'/5</div><h3>Почти получилось</h3><p class="sub">Нужно 4 из 5. Пересмотри урок, особенно шаги с ошибками, и попробуй снова. Менеджер увидит, что нужна помощь.</p><button class="btn" id="rAgain">Пройти ещё раз</button>';
     }
     var e;if(e=$('rNext'))e.onclick=function(){openStation(next.id)};
-    if(e=$('rRate'))e.onclick=function(){show('rating')};
-    if(e=$('rMan'))e.onclick=function(){show('manager')};
+    if(e=$('rMgr'))e.onclick=function(){setMode('mgr')};
+    if(e=$('rRoute'))e.onclick=function(){show('route')};
     if(e=$('rAgain'))e.onclick=startQuiz;
     refresh();
   };
@@ -480,56 +683,83 @@
     setTimeout(function(){c.innerHTML=''},4000);
   }
 
-  // rating
   function renderRating(){
-    var me=points(),list=PEOPLE.slice();list.push([NAME+' (ты)',me,'#C8402F',nPassed()+' из 3 станций','me']);
+    var me=points(),list=PEOPLE.slice();list.push([NAME()+' (ты)',me,'#C8402F',nPassed()+' из 3 станций','me']);
     list.sort(function(a,b){return b[1]-a[1]});
-    $('lb').innerHTML='<div class="tag">Новички ресторана · баллы</div>'+list.map(function(p,i){return '<div class="row'+(p[4]?' me':'')+'"><div class="pos">'+(i+1)+'</div><div class="av" style="background:'+p[2]+'">'+p[0].charAt(0)+'</div><div class="nm">'+p[0]+'<small>'+p[3]+'</small></div><div class="sc">'+p[1]+'</div></div>'}).join('');
+    $('lb').innerHTML='<div class="tag">Новички ресторана · баллы</div>'+list.map(function(p,i){return '<div class="row'+(p[4]?' me':'')+'"><div class="pos">'+(i+1)+'</div><div class="av" style="background:'+p[2]+'">'+esc(p[0].charAt(0))+'</div><div class="nm">'+esc(p[0])+'<small>'+p[3]+'</small></div><div class="sc">'+p[1]+'</div></div>'}).join('');
     $('shiftMe').textContent=(1080+me).toLocaleString('ru-RU');
-    var A=[['▶','Первый урок',Object.keys(state.watched).length>0],['✓','Первая станция',nPassed()>0],['5/5','Тест без ошибок',ST.some(function(s){return state.scores[s.id]===5})],['3','Все станции',nPassed()===3],['★','Лучший новичок',me>=520],['⚡','Смена-лидер',1080+me>1240]];
+    var A=[['▶','Первый урок',Object.keys(state.watched).length>0],['✓','Первая станция',nPassed()>0],['5/5','Тест без ошибок',ST.some(function(s){return state.scores[s.id]===5})],['3','Все станции',nPassed()===3],['★','Допуск к смене',state.attested],['⚡','Смена-лидер',1080+me>1240]];
     $('ach').innerHTML=A.map(function(a){return '<div class="'+(a[2]?'got':'')+'"><i>'+a[0]+'</i>'+a[1]+'</div>'}).join('');
   }
 
-  // bot
-  var QA=[['Мой график','Завтра смена 10:00–18:00.\nНаставник: Данияр.\nАттестация №1 — в пятницу с тренером.'],
-    ['Что со мной дальше?',function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];return nx?'Следующий шаг — станция «'+nx.name+'». Урок на 60 секунд и тест из 5 вопросов. Открыть можно в разделе «Учёба» или по QR-коду на станции.':'Все станции сданы! Дальше — пиковые смены и аттестация с тренером. Ты молодец.'}],
+  var QA=[['Мой график',function(){return 'Первая смена: '+fmtDate(state.reg.date)+', 10:00–18:00.\nРесторан: '+rest(state.reg.rest).name+'.\nНаставник: Данияр.'}],
+    ['Что со мной дальше?',function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];if(state.attested)return 'Ты допущен к самостоятельной смене! Следующая встреча с тренером — через 30 дней.';return nx?'Следующий шаг — станция «'+nx.name+'». Урок на 60 секунд и тест из 5 вопросов. Открыть можно в разделе «Учёба» или по QR-коду на станции.':'Все станции сданы! Осталась аттестация на смене с тренером.'}],
     ['Гость жалуется','1. Выслушай, не перебивай.\n2. Извинись.\n3. Назови решение или точное время.\n4. Не можешь решить сам — позови менеджера смены.'],
     ['Позвать наставника','Готово! Данияр получил уведомление и подойдёт к твоей станции.']];
   function addMsg(txt,who){var m=document.createElement('div');m.className='msg '+who;var d=new Date();m.textContent=txt;var t=document.createElement('span');t.className='t';t.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);m.appendChild(t);$('chat').appendChild(m);$('chat').scrollTop=1e6;}
   function botSay(txt,delay){var ty=document.createElement('div');ty.className='typing';ty.innerHTML='<i></i><i></i><i></i>';$('chat').appendChild(ty);$('chat').scrollTop=1e6;setTimeout(function(){ty.remove();addMsg(txt,'bot')},delay||900);}
   function startChat(){
     if(startChat.done)return;startChat.done=true;
-    botSay('Доброе утро, '+NAME+'! Это твой тренер-бот.',600);
-    setTimeout(function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];botSay(nx?'Сегодня по плану станция «'+nx.name+'». Урок займёт 60 секунд — загляни в перерыве.':'Все станции сданы — поздравляю! Скоро аттестация с тренером.',900)},1500);
+    botSay('Привет, '+NAME()+'! Менеджер подтвердил твою регистрацию в ресторане «'+rest(state.reg.rest).name+'». Я — твой тренер-бот.',600);
+    setTimeout(function(){var nx=ST.filter(function(s){return !passed(s.id)})[0];botSay(nx?'Сегодня по плану станция «'+nx.name+'». Урок займёт 60 секунд — загляни в перерыве.':'Все станции сданы — поздравляю!',900)},1500);
     $('quick').innerHTML='';QA.forEach(function(qa){var b=document.createElement('button');b.textContent=qa[0];b.onclick=function(){addMsg(qa[0],'me');botSay(typeof qa[1]==='function'?qa[1]():qa[1],900)};$('quick').appendChild(b);});
   }
 
-  // manager
+  function refresh(){
+    var n=nPassed();
+    $('hello').textContent='Привет, '+NAME()+'!';
+    $('meta').textContent=(state.reg?state.reg.role+' · '+rest(state.reg.rest).name:'');
+    $('xpfill').style.width=((n+(state.attested?1:0))/4*100)+'%';$('xptext').textContent=state.attested?'Допуск к смене получен':n+' из 3 станций';
+    $('b2').classList.toggle('on',n>0);$('b3').classList.toggle('on',n===3);
+    $('pts').textContent=points()+' баллов';
+    renderRoute();renderRating();
+    if(cur)$('chips').querySelectorAll('.chip').forEach(function(b){var s=ST.filter(function(x){return x.id===b.dataset.st})[0];b.innerHTML=s.name+(passed(s.id)?' <span class="ok">✓</span>':'')});
+  }
+
+  // ---------- manager ----------
   function renderManager(){
-    var n=nPassed();$('mMeSt').textContent=n+'/3';
-    var p=$('mMePill'),anyFail=ST.some(function(s){return state.scores[s.id]!=null&&state.scores[s.id]<4});
-    if(n===3){p.className='pill g';p.textContent='Профи';}else if(n>0){p.className='pill g';p.textContent='Стажёр';}else if(anyFail){p.className='pill r';p.textContent='Пересдача';}else{p.className='pill y';p.textContent='Учится';}
-    $('mReady').textContent=String(3+(n>0?1:0));
+    var r=state.reg,myRest=rest((r&&r.rest)||state.inviteRest||'r1');
+    $('mgrRest').textContent=myRest.name+' · '+myRest.addr;
+    var box=$('reqBox');
+    if(r&&r.status==='pending'){
+      var rs=rest(r.rest);
+      box.innerHTML='<div class="req"><div class="top"><div class="av">'+esc(r.name.charAt(0))+'</div><div><b>'+esc(r.name)+'</b><small>Новая заявка · только что</small></div></div>'+
+        '<div class="dl"><div><span>Должность</span><b>'+esc(r.role)+'</b></div><div><span>Телефон</span><b>'+esc(r.phone)+'</b></div><div><span>Ресторан</span><b>'+esc(rs.name)+'</b></div><div><span>Первая смена</span><b>'+fmtDate(r.date)+'</b></div></div>'+
+        '<div class="row2"><button class="btn small ghost" id="rej" style="flex:1">Отклонить</button><button class="btn small okb" id="apr" style="flex:2">Подтвердить</button></div></div>';
+      $('apr').onclick=function(){state.reg.status='approved';save();haptic('success');toast('Регистрация подтверждена — сотруднику пришло уведомление в Telegram');render();
+        setTimeout(function(){if(state.mode==='mgr'){var tip=document.createElement('div');tip.className='hint';tip.innerHTML='Демо: переключись в режим «Сотрудник» — там уже открылось обучение.';box.appendChild(tip);}},300);};
+      $('rej').onclick=function(){state.reg.status='rejected';save();haptic('warning');toast('Заявка отклонена');render();};
+    }else{
+      box.innerHTML='<div class="card empty">Новых заявок нет.'+(r?'':' Зарегистрируйся в режиме «Сотрудник», и заявка появится здесь.')+'</div>';
+    }
+    var me=r&&r.status==='approved',n=nPassed();
+    var rows='';
+    if(me){
+      var st,cls;
+      if(state.attested){st='Допущен';cls='g';}else if(n===3){st='Ждёт аттестации';cls='b';}else if(n>0){st='Стажёр';cls='g';}else if(ST.some(function(s){return state.scores[s.id]!=null&&state.scores[s.id]<4})){st='Пересдача';cls='r';}else{st='Учится';cls='y';}
+      rows+='<tr style="background:#FDF1D8"><td><b>'+esc(r.name.split(' ')[0])+'</b></td><td>'+n+'/3</td><td>'+(n===3&&!state.attested?'<button class="att" id="attBtn">Отметить аттестацию</button>':'<span class="pill '+cls+'">'+st+'</span>')+'</td></tr>';
+    }
+    rows+='<tr><td>Мадина</td><td>3/3</td><td><span class="pill g">Допущен</span></td></tr><tr><td>Ерлан</td><td>2/3</td><td><span class="pill g">Стажёр</span></td></tr><tr><td>Ольга</td><td>1/3</td><td><span class="pill g">Стажёр</span></td></tr><tr><td>Данияр К.</td><td>0/3</td><td><span class="pill r">Пересдача</span></td></tr>';
+    $('mBody').innerHTML=rows;
+    var ab=$('attBtn');if(ab)ab.onclick=function(){state.attested=true;save();haptic('success');confetti();toast(NAME()+' допущен к самостоятельной смене');renderManager();};
+    $('mReady').textContent=String(3+(state.attested?1:0));
+    $('mLearn').textContent=String(2+(me&&!state.attested?1:0));
     var base={cash:80,pizza:60,oven:45};
-    $('stTable').innerHTML=ST.map(function(s){var v=base[s.id]+(passed(s.id)?10:0);return '<tr><td>'+s.name+'</td><td><div class="mini"><div style="width:'+v+'%"></div></div></td><td>'+v+'%</td></tr>'}).join('');
+    $('stTable').innerHTML=ST.map(function(s){var v=base[s.id]+(me&&passed(s.id)?10:0);return '<tr><td>'+s.name+'</td><td><div class="mini"><div style="width:'+v+'%"></div></div></td><td>'+v+'%</td></tr>'}).join('');
+    drawQR($('qrInvite'),'https://t.me/'+BOT+'?startapp='+myRest.id);
   }
   $('remind').onclick=function(){toast('Готово: Данияр К. и наставник получили напоминание в Telegram');};
 
-  function refresh(){
-    var n=nPassed();
-    $('xpfill').style.width=(n/3*100)+'%';$('xptext').textContent=n+' из 3 станций';
-    $('b2').classList.toggle('on',n>0);$('b3').classList.toggle('on',n===3);
-    $('pts').textContent=points()+' баллов';
-    renderRoute();renderRating();renderManager();
-    if(cur)$('chips').querySelectorAll('.chip').forEach(function(b){var s=ST.filter(function(x){return x.id===b.dataset.st})[0];b.innerHTML=s.name+(passed(s.id)?' <span class="ok">✓</span>':'')});
-  }
-  $('reset').onclick=function(){state=JSON.parse(JSON.stringify(DEF));save();startChat.done=false;$('chat').innerHTML='';cur=ST[0];renderLesson();refresh();show('route');toast('Прогресс сброшен');};
+  $('reset').onclick=function(){
+    var inv=state.inviteRest;state=fresh();state.inviteRest=inv;save();sel=null;role=null;startChat.done=false;$('chat').innerHTML='';
+    ['fName','fPhone'].forEach(function(id){$(id).value=''});$('fOk').checked=false;$('fRole').querySelectorAll('button').forEach(function(x){x.classList.remove('on')});
+    cur=ST[0];renderLesson();render();toast('Демо начато заново');
+  };
 
   cur=ST.filter(function(s){return s.id===state.cur})[0]||ST[0];
-  renderLesson();refresh();
-  function fromHash(){var h=(location.hash||'').slice(1);if(ST.some(function(s){return s.id===h}))openStation(h);}
-  window.addEventListener('hashchange',fromHash);fromHash();
-  if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param){var sp=tg.initDataUnsafe.start_param;if(ST.some(function(s){return s.id===sp}))openStation(sp);}
+  renderLesson();render();
+  if(approved()&&ST.some(function(s){return s.id===startParam})){state.mode='emp';openStation(startParam);render();}
+  window.addEventListener('hashchange',function(){var h=location.hash.slice(1);if(rest(h)&&!state.reg){state.inviteRest=h;sel=h;save();render();}else if(approved()&&ST.some(function(s){return s.id===h}))openStation(h);});
 })();
 </script>
 </body>
