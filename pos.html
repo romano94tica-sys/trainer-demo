@@ -10,7 +10,7 @@
   :root{--ink:#1E1A17;--ink2:#2B2521;--ink3:#3d3530;--cream:#F6F1E7;--paper:#FFFCF6;--line:#E3D9C8;--tomato:#C8402F;--sun:#F0B23A;--muted:#6B5F55;--soft:#D9CFC0;--ok:#2F7A4F;--bad:#B8341F;
     --f:'Rubik',system-ui,-apple-system,Segoe UI,Arial,sans-serif;--fd:'Oswald',Arial,sans-serif}
   *{box-sizing:border-box;margin:0;padding:0}
-  html{background:#1E1A17}
+  html{background:#1E1A17;overflow-x:hidden}
   body{font-family:var(--f);color:var(--ink);background:var(--cream);min-height:100vh}
   button,input{font-family:var(--f)}
   .top{background:var(--ink);color:var(--cream);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
@@ -28,8 +28,8 @@
   .levels button.on{background:var(--ink);border-color:var(--ink);color:var(--cream)}
   .levels button .ok{color:var(--ok)}
   .levels button.on .ok{color:#8fd3a8}
-  .grid{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:860px){.grid{grid-template-columns:380px 1fr}}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+  @media(min-width:860px){.grid{grid-template-columns:380px minmax(0,1fr)}}
   .check{background:var(--ink);color:var(--cream);border-radius:16px;padding:14px;display:flex;flex-direction:column;min-height:300px}
   .otype{display:flex;gap:6px;margin-bottom:10px}
   .otype button{flex:1;border:0;border-radius:10px;padding:9px 4px;background:var(--ink2);color:var(--soft);font-weight:600;font-size:13px;cursor:pointer}
@@ -134,6 +134,8 @@
 
 <script>
 (function(){
+  var EMBED=/[?&]embed=1/.test(location.search)||window.self!==window.top;
+  if(EMBED){var bk=document.getElementById('back');if(bk)bk.style.display='none';}
   var tg=(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData)?window.Telegram.WebApp:null;
   if(tg){try{tg.ready();tg.expand();tg.setHeaderColor('#1E1A17');}catch(e){}}
   function haptic(k){try{if(tg)tg.HapticFeedback.notificationOccurred(k)}catch(e){}}
@@ -286,11 +288,11 @@
     $('sRes').innerHTML='<div class="res"><h3>'+(pct>=80?'Заказ пробит!':'Есть ошибки')+'</h3><div class="big">'+pct+'%</div><div class="sub">Время: '+Math.floor(secs/60)+':'+('0'+secs%60).slice(-2)+(fast?' · быстро 👍':' · можно быстрее')+'</div>'+
       '<ul>'+res.map(function(r){return '<li class="'+(r[0]?'g':'b')+'"><i>'+(r[0]?'✓':'✕')+'</i><span>'+r[1]+'</span></li>'}).join('')+'</ul>'+
       '<div class="receipt">'+rcpt.replace(/</g,'&lt;')+'</div>'+
-      '<div class="row"><button class="btn ghost" id="rAgain">Ещё раз</button>'+(level<TASKS.length-1?'<button class="btn" id="rNext">Следующий уровень</button>':'<button class="btn" id="rBack">Готово</button>')+'</div></div>';
+      '<div class="row"><button class="btn ghost" id="rAgain">Ещё раз</button>'+(level<TASKS.length-1?'<button class="btn" id="rNext">Следующий уровень</button>':'<button class="btn" id="rBack">'+(EMBED?'С начала':'Готово')+'</button>')+'</div></div>';
     $('mRes').classList.add('on');
     $('rAgain').onclick=function(){close();reset()};
     var n=$('rNext');if(n)n.onclick=function(){close();level++;reset()};
-    var b=$('rBack');if(b)b.onclick=function(){close();location.href='index.html'};
+    var b=$('rBack');if(b)b.onclick=function(){close();if(EMBED){level=0;reset();}else location.href='index.html'};
   }
 
   reset();

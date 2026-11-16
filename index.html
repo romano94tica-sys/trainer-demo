@@ -11,7 +11,7 @@
   :root{--ink:#1E1A17;--ink2:#2B2521;--cream:#F6F1E7;--paper:#FFFCF6;--line:#E3D9C8;--tomato:#C8402F;--sun:#F0B23A;--muted:#6B5F55;--soft:#D9CFC0;--ok:#2F7A4F;--bad:#B8341F;--tg:#2AABEE;
     --f:'Rubik',system-ui,-apple-system,Segoe UI,Arial,sans-serif;--fd:'Oswald',Arial,sans-serif}
   *{box-sizing:border-box;margin:0;padding:0}
-  html{background:#1E1A17}
+  html{background:#1E1A17;overflow-x:hidden}
   body{font-family:var(--f);color:var(--ink);min-height:100vh;background:radial-gradient(circle at 80% 0%,#3B2620 0%,#1E1A17 55%) fixed;display:flex;justify-content:center}
   button,input{font-family:var(--f)}
   .stage{width:100%;display:flex;gap:56px;justify-content:center;align-items:flex-start;padding:32px 16px}
@@ -332,6 +332,7 @@
       <nav>
         <button class="on" data-v="route"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>Маршрут</button>
         <button data-v="lesson"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/></svg>Учёба</button>
+        <button data-v="pos"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h8"/></svg>Касса</button>
         <button data-v="rating"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Рейтинг</button>
         <button data-v="bot"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/></svg>Бот</button>
       </nav>
@@ -358,7 +359,7 @@
           <div class="card tips" id="tips"></div>
           <div class="sticker"><div class="qr" id="qr"></div><div><b id="qrTitle">Наклейка на станцию</b><span>Новичок наводит камеру — урок этой станции открывается прямо в Telegram.</span></div></div>
           <button class="btn dark" id="toQuiz">Пройти тест</button>
-          <a class="btn ghost" id="posBtn" href="pos.html" style="text-align:center;text-decoration:none;margin-top:10px">Тренажёр кассы: пробей заказ</a>
+          <a class="btn ghost" id="posBtn" href="#" style="text-align:center;text-decoration:none;margin-top:10px">Тренажёр кассы: пробей заказ</a>
           <div id="quizBox" style="display:none;margin-top:18px">
             <div id="qwrap">
               <div class="qhead"><span id="qnum"></span><span>Нужно 4 из 5</span></div>
@@ -370,6 +371,10 @@
             </div>
             <div class="result" id="qres" style="display:none"></div>
           </div>
+        </section>
+
+        <section class="view" id="pos" style="margin:-20px -20px 0">
+          <iframe id="posFrame" title="Тренажёр кассы" style="width:100%;height:600px;border:0;display:block;background:#F6F1E7"></iframe>
         </section>
 
         <section class="view" id="rating">
@@ -582,9 +587,13 @@
     document.querySelectorAll('.view').forEach(function(el){el.classList.toggle('on',el.id===v)});
     navBtns.forEach(function(b){b.classList.toggle('on',b.dataset.v===v)});
     if(v==='bot')startChat();
-    window.scrollTo({top:0,behavior:'smooth'});
+    $('empApp').querySelector('header').classList.toggle('hide',v==='pos');
+    if(v==='pos'){if(!$('posFrame').src)$('posFrame').src='pos.html?embed=1';window.scrollTo(0,0);fitPos();}
+    if(v!=='pos')window.scrollTo({top:0,behavior:'smooth'});
   }
   navBtns.forEach(function(b){b.addEventListener('click',function(){show(b.dataset.v)})});
+  function fitPos(){var f=$('posFrame');if(!f||!f.offsetParent)return;var top=f.getBoundingClientRect().top;f.style.height=Math.max(480,window.innerHeight-top)+'px';}
+  window.addEventListener('resize',fitPos);
   function renderRoute(){
     var html='<div class="step done"><div class="n">✓</div><div><b>Регистрация и знакомство</b><span>Наставник: Данияр</span></div></div>';
     var nowSet=false;
@@ -621,6 +630,7 @@
     drawQR($('qr'),'https://t.me/'+BOT+'?startapp='+cur.id);
     $('quizBox').style.display='none';$('toQuiz').style.display='block';
     $('posBtn').style.display=cur.id==='cash'?'block':'none';
+    $('posBtn').onclick=function(e){e.preventDefault();show('pos')};
   }
   function setScene(i){$('capK').textContent='Шаг '+(i+1)+' из '+cur.scenes.length;$('capT').textContent=cur.scenes[i][0];$('capD').textContent=cur.scenes[i][1];var c=$('cap');c.style.animation='none';void c.offsetWidth;c.style.animation='in .4s ease';}
   $('playBtn').addEventListener('click',function(){
