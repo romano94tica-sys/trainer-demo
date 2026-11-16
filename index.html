@@ -358,6 +358,7 @@
           <div class="card tips" id="tips"></div>
           <div class="sticker"><div class="qr" id="qr"></div><div><b id="qrTitle">Наклейка на станцию</b><span>Новичок наводит камеру — урок этой станции открывается прямо в Telegram.</span></div></div>
           <button class="btn dark" id="toQuiz">Пройти тест</button>
+          <a class="btn ghost" id="posBtn" href="pos.html" style="text-align:center;text-decoration:none;margin-top:10px">Тренажёр кассы: пробей заказ</a>
           <div id="quizBox" style="display:none;margin-top:18px">
             <div id="qwrap">
               <div class="qhead"><span id="qnum"></span><span>Нужно 4 из 5</span></div>
@@ -619,6 +620,7 @@
     $('qrTitle').textContent='Наклейка «'+cur.name+'»';
     drawQR($('qr'),'https://t.me/'+BOT+'?startapp='+cur.id);
     $('quizBox').style.display='none';$('toQuiz').style.display='block';
+    $('posBtn').style.display=cur.id==='cash'?'block':'none';
   }
   function setScene(i){$('capK').textContent='Шаг '+(i+1)+' из '+cur.scenes.length;$('capT').textContent=cur.scenes[i][0];$('capD').textContent=cur.scenes[i][1];var c=$('cap');c.style.animation='none';void c.offsetWidth;c.style.animation='in .4s ease';}
   $('playBtn').addEventListener('click',function(){

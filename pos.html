@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажёр кассы: пробей заказ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Rubik:wght@400;500;600;700&display=swap">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{--ink:#1E1A17;--ink2:#2B2521;--ink3:#3d3530;--cream:#F6F1E7;--paper:#FFFCF6;--line:#E3D9C8;--tomato:#C8402F;--sun:#F0B23A;--muted:#6B5F55;--soft:#D9CFC0;--ok:#2F7A4F;--bad:#B8341F;
+    --f:'Rubik',system-ui,-apple-system,Segoe UI,Arial,sans-serif;--fd:'Oswald',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:#1E1A17}
+  body{font-family:var(--f);color:var(--ink);background:var(--cream);min-height:100vh}
+  button,input{font-family:var(--f)}
+  .top{background:var(--ink);color:var(--cream);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+  .top a{color:var(--soft);text-decoration:none;font-size:14px}
+  .top b{font-family:var(--fd);text-transform:uppercase;font-size:18px;letter-spacing:.5px}
+  .top .timer{margin-left:auto;font-family:var(--fd);font-size:20px;color:var(--sun);min-width:56px;text-align:right}
+  .wrap{max-width:1100px;margin:0 auto;padding:14px}
+  .task{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+  .task .av{flex:none;width:44px;height:44px;border-radius:50%;background:var(--tomato);color:#fff;display:grid;place-items:center;font-family:var(--fd);font-size:18px}
+  .task .lv{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tomato);font-weight:700}
+  .task .say{font-size:17px;line-height:1.4;margin-top:4px;font-weight:500}
+  .task .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .levels{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .levels button{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13px;cursor:pointer;color:var(--ink)}
+  .levels button.on{background:var(--ink);border-color:var(--ink);color:var(--cream)}
+  .levels button .ok{color:var(--ok)}
+  .levels button.on .ok{color:#8fd3a8}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:860px){.grid{grid-template-columns:380px 1fr}}
+  .check{background:var(--ink);color:var(--cream);border-radius:16px;padding:14px;display:flex;flex-direction:column;min-height:300px}
+  .otype{display:flex;gap:6px;margin-bottom:10px}
+  .otype button{flex:1;border:0;border-radius:10px;padding:9px 4px;background:var(--ink2);color:var(--soft);font-weight:600;font-size:13px;cursor:pointer}
+  .otype button.on{background:var(--sun);color:var(--ink)}
+  .lines{flex:1;overflow:auto;min-height:120px}
+  .line{display:flex;gap:8px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--ink3)}
+  .line .q{font-family:var(--fd);font-size:18px;color:var(--sun);min-width:26px}
+  .line .n{flex:1;font-size:14px}
+  .line .n small{display:block;color:var(--soft);font-size:12px;margin-top:2px}
+  .line .p{font-family:var(--fd);font-size:16px;white-space:nowrap}
+  .line .x{border:0;background:var(--ink3);color:var(--soft);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:14px}
+  .empty{color:#9c9184;font-size:14px;padding:18px 0;text-align:center}
+  .tot{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink3);padding-top:10px;margin-top:8px}
+  .tot span{color:var(--soft);font-size:14px}
+  .tot b{font-family:var(--fd);font-size:30px;color:var(--sun)}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .btn{border:0;border-radius:12px;padding:13px 8px;font-weight:600;font-size:15px;cursor:pointer;background:var(--tomato);color:#fff}
+  .btn.ghost{background:var(--ink2);color:var(--cream)}
+  .btn.ok{background:var(--ok)}
+  .btn.wide{grid-column:1/-1}
+  .btn:disabled{opacity:.45;cursor:default}
+  .menu{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px}
+  .cats{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+  .cats button{flex:none;border:2px solid var(--line);background:var(--cream);border-radius:10px;padding:9px 14px;font-weight:600;font-size:14px;cursor:pointer;color:var(--ink)}
+  .cats button.on{background:var(--tomato);color:#fff;border-color:var(--tomato)}
+  .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+  .item{border:0;border-radius:14px;padding:14px 10px;min-height:86px;text-align:left;cursor:pointer;background:var(--cream);border:2px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;transition:transform .08s}
+  .item:active{transform:scale(.97)}
+  .item b{font-size:15px;line-height:1.25}
+  .item span{font-family:var(--fd);font-size:15px;color:var(--tomato);margin-top:6px}
+  .modal{position:fixed;inset:0;background:rgba(30,26,23,.55);display:none;align-items:flex-end;justify-content:center;z-index:30}
+  .modal.on{display:flex}
+  @media(min-width:860px){.modal{align-items:center}}
+  .sheet{background:var(--paper);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px;max-height:90vh;overflow:auto;animation:up .25s ease}
+  @media(min-width:860px){.sheet{border-radius:20px}}
+  @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+  .sheet h3{font-family:var(--fd);text-transform:uppercase;font-size:22px;margin-bottom:4px}
+  .sheet .sub{color:var(--muted);font-size:14px;margin-bottom:12px}
+  .grp{margin:12px 0 6px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opts button{flex:1;min-width:96px;border:2px solid var(--line);background:var(--cream);border-radius:12px;padding:11px 8px;font-weight:600;font-size:14px;cursor:pointer;color:var(--ink)}
+  .opts button.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+  .opts button small{display:block;font-weight:400;font-size:12px;opacity:.8;margin-top:2px}
+  .qty{display:flex;align-items:center;gap:14px;margin-top:6px}
+  .qty button{width:44px;height:44px;border-radius:12px;border:2px solid var(--line);background:var(--cream);font-size:22px;cursor:pointer}
+  .qty b{font-family:var(--fd);font-size:26px;min-width:30px;text-align:center}
+  .sheet .row{display:flex;gap:8px;margin-top:16px}
+  .sheet .row .btn{flex:1}
+  .pay{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .pay button{border:2px solid var(--line);background:var(--cream);border-radius:12px;padding:14px 6px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .pay button.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+  .cash{margin-top:12px;display:none}
+  .cash.on{display:block}
+  .cash input{width:100%;border:2px solid var(--line);border-radius:12px;padding:13px;font-size:20px;font-family:var(--fd)}
+  .quick{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .quick button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;font-weight:600;cursor:pointer}
+  .change{margin-top:10px;font-size:16px}
+  .change b{font-family:var(--fd);font-size:24px;color:var(--ok)}
+  .err{color:var(--bad);font-size:13px;margin-top:6px;display:none}
+  .err.on{display:block}
+  .upsell{background:#FDF1D8;border-radius:12px;padding:12px;font-size:14px;line-height:1.45;margin-bottom:12px}
+  .res{text-align:center}
+  .res .big{font-family:var(--fd);font-size:72px;line-height:1;color:var(--tomato);margin-top:6px}
+  .res ul{list-style:none;text-align:left;margin:14px 0}
+  .res li{padding:8px 0;border-top:1px solid var(--line);font-size:14px;display:flex;gap:8px}
+  .res li i{font-style:normal;font-weight:700;min-width:18px}
+  .res li.g i{color:var(--ok)}.res li.b i{color:var(--bad)}
+  .receipt{background:#fff;border:1px dashed #c9bba5;border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;text-align:left;margin:10px 0;white-space:pre-wrap;line-height:1.5}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin:14px 0 6px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:var(--cream);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.3s;z-index:60;pointer-events:none;max-width:90vw;text-align:center}
+  .toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="top"><a href="index.html" id="back">‹ Назад</a><b>Тренажёр кассы</b><div class="timer" id="timer">0:00</div></div>
+<div class="wrap">
+  <div class="levels" id="levels"></div>
+  <div class="task"><div class="av">Г</div><div><div class="lv" id="tLv"></div><div class="say" id="tSay"></div><div class="hint" id="tHint"></div></div></div>
+  <div class="grid">
+    <div class="check">
+      <div class="otype" id="otype"><button data-t="hall">В зале</button><button data-t="take">С собой</button><button data-t="deliv">Доставка</button></div>
+      <div class="lines" id="lines"></div>
+      <div class="tot"><span>Итого</span><b id="total">0 ₸</b></div>
+      <div class="acts">
+        <button class="btn ghost" id="upsellBtn">Предложить допродажу</button>
+        <button class="btn ghost" id="repeatBtn">Повторить заказ</button>
+        <button class="btn wide" id="payBtn">Расчёт</button>
+      </div>
+    </div>
+    <div class="menu">
+      <div class="cats" id="cats"></div>
+      <div class="items" id="items"></div>
+    </div>
+  </div>
+  <p class="note">Учебный тренажёр в логике ресторанных кассовых систем (iiko и подобных). Меню и цены условные.</p>
+</div>
+
+<div class="modal" id="mItem"><div class="sheet" id="sItem"></div></div>
+<div class="modal" id="mPay"><div class="sheet" id="sPay"></div></div>
+<div class="modal" id="mRes"><div class="sheet" id="sRes"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var tg=(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initData)?window.Telegram.WebApp:null;
+  if(tg){try{tg.ready();tg.expand();tg.setHeaderColor('#1E1A17');}catch(e){}}
+  function haptic(k){try{if(tg)tg.HapticFeedback.notificationOccurred(k)}catch(e){}}
+  function tap(){try{if(tg)tg.HapticFeedback.impactOccurred('light')}catch(e){}}
+  function $(id){return document.getElementById(id)}
+  function money(n){return n.toLocaleString('ru-RU')+' ₸'}
+  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},2200)}
+
+  var SIZES=[['S','25 см',0],['M','30 см',900],['L','35 см',1800]];
+  var DOUGH=['Традиционное','Тонкое'];
+  var MENU={
+    'Пицца':[
+      {id:'pep',name:'Пепперони',price:3290,pizza:true,mods:[['noonion','Без лука',0],['xcheese','Доп. сыр',600],['crust','Сырный борт',900]]},
+      {id:'mar',name:'Маргарита',price:2890,pizza:true,mods:[['xcheese','Доп. сыр',600],['crust','Сырный борт',900]]},
+      {id:'4ch',name:'Четыре сыра',price:3590,pizza:true,mods:[['crust','Сырный борт',900]]},
+      {id:'bbq',name:'Барбекю курица',price:3490,pizza:true,mods:[['noonion','Без лука',0],['xcheese','Доп. сыр',600],['crust','Сырный борт',900]]}],
+    'Закуски':[{id:'wedg',name:'Картофельные дольки',price:1290},{id:'wing',name:'Куриные крылья',price:2190},{id:'brd',name:'Чесночные хлебцы',price:990}],
+    'Соусы':[{id:'sgar',name:'Чесночный соус',price:290},{id:'sbbq',name:'Соус барбекю',price:290},{id:'sche',name:'Сырный соус',price:290}],
+    'Напитки':[{id:'cola5',name:'Кола 0,5 л',price:690},{id:'cola1',name:'Кола 1 л',price:990},{id:'water',name:'Вода 0,5 л',price:390},{id:'juice',name:'Сок 1 л',price:1090}]
+  };
+  var ALL={};Object.keys(MENU).forEach(function(c){MENU[c].forEach(function(i){ALL[i.id]=i})});
+  var OT={hall:'В зале',take:'С собой',deliv:'Доставка'};
+  var PAY={cash:'Наличные',card:'Карта',qr:'QR-оплата'};
+
+  // expected: list of {id,size,dough,mods[],qty}
+  var TASKS=[
+    {lv:'Уровень 1 · Простой заказ',say:'«Здравствуйте! Мне Маргариту среднюю и воду. Здесь поем, картой».',hint:'Тип заказа, две позиции, оплата картой. Не забудь допродажу и повтор заказа.',
+      type:'hall',pay:'card',want:[{id:'mar',size:'M',dough:'Традиционное',mods:[],qty:1},{id:'water',qty:1}],upsell:{id:'sgar',qty:1,reply:'«Чесночный? Давайте один».'}},
+    {lv:'Уровень 2 · Модификаторы',say:'«Большую Пепперони на тонком тесте, только без лука. И колу литровую. С собой, оплачу через QR».',hint:'Размер, тесто и модификатор «без лука» — частые ошибки новичков.',
+      type:'take',pay:'qr',want:[{id:'pep',size:'L',dough:'Тонкое',mods:['noonion'],qty:1},{id:'cola1',qty:1}],upsell:{id:'wedg',qty:1,reply:'«Дольки? А давайте, к фильму как раз».'}},
+    {lv:'Уровень 3 · Большой заказ и сдача',say:'«Нам две Четыре сыра, средние, одну из них с сырным бортом. Ещё крылья и чесночный соус. Здесь. Наличными, вот 20 000».',hint:'Одинаковые пиццы с разными модификаторами — отдельными строками. Посчитай сдачу.',
+      type:'hall',pay:'cash',cash:20000,want:[{id:'4ch',size:'M',dough:'Традиционное',mods:[],qty:1},{id:'4ch',size:'M',dough:'Традиционное',mods:['crust'],qty:1},{id:'wing',qty:1},{id:'sgar',qty:1}],upsell:{id:'cola1',qty:1,reply:'«Колу литровую? Да, давайте».'}}
+  ];
+  var level=0,best={},order,start,tick,upsold,repeated,payInfo;
+  try{best=JSON.parse(localStorage.getItem('pos-best')||'{}')}catch(e){}
+
+  function linePrice(l){var it=ALL[l.id],p=it.price;if(it.pizza){p+=SIZES.filter(function(s){return s[0]===l.size})[0][2];(l.mods||[]).forEach(function(m){var md=it.mods.filter(function(x){return x[0]===m})[0];p+=md?md[2]:0})}return p*l.qty}
+  function total(){return order.lines.reduce(function(s,l){return s+linePrice(l)},0)}
+  function sameLine(a,b){return a.id===b.id&&(a.size||'')===(b.size||'')&&(a.dough||'')===(b.dough||'')&&JSON.stringify((a.mods||[]).slice().sort())===JSON.stringify((b.mods||[]).slice().sort())}
+
+  function renderLevels(){
+    $('levels').innerHTML=TASKS.map(function(t,i){return '<button class="'+(i===level?'on':'')+'" data-i="'+i+'">Уровень '+(i+1)+(best[i]!=null?' <span class="ok">✓ '+best[i]+'</span>':'')+'</button>'}).join('');
+    $('levels').querySelectorAll('button').forEach(function(b){b.onclick=function(){level=+b.dataset.i;reset()}});
+  }
+  function reset(){
+    order={type:null,lines:[]};upsold=false;repeated=false;payInfo=null;
+    var t=TASKS[level];$('tLv').textContent=t.lv;$('tSay').textContent=t.say;$('tHint').textContent=t.hint;
+    clearInterval(tick);start=null;$('timer').textContent='0:00';
+    renderLevels();renderCheck();renderCats(Object.keys(MENU)[0]);
+  }
+  function startTimer(){if(start)return;start=Date.now();tick=setInterval(function(){var s=Math.floor((Date.now()-start)/1000);$('timer').textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2)},500)}
+
+  $('otype').querySelectorAll('button').forEach(function(b){b.onclick=function(){startTimer();order.type=b.dataset.t;tap();renderCheck()}});
+  function renderCheck(){
+    $('otype').querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.t===order.type)});
+    if(!order.lines.length){$('lines').innerHTML='<div class="empty">Выбери тип заказа и добавь позиции из меню</div>';}
+    else $('lines').innerHTML=order.lines.map(function(l,i){var it=ALL[l.id],sub=[];if(it.pizza){var s=SIZES.filter(function(x){return x[0]===l.size})[0];sub.push(s[1]);sub.push(l.dough);(l.mods||[]).forEach(function(m){sub.push(it.mods.filter(function(x){return x[0]===m})[0][1])})}
+      return '<div class="line"><div class="q">'+l.qty+'×</div><div class="n">'+it.name+(sub.length?'<small>'+sub.join(' · ')+'</small>':'')+'</div><div class="p">'+money(linePrice(l))+'</div><button class="x" data-i="'+i+'" aria-label="Удалить">✕</button></div>'}).join('');
+    $('lines').querySelectorAll('.x').forEach(function(b){b.onclick=function(){order.lines.splice(+b.dataset.i,1);tap();renderCheck()}});
+    $('total').textContent=money(total());
+    $('payBtn').disabled=!order.lines.length;
+    $('upsellBtn').textContent=upsold?'Допродажа ✓':'Предложить допродажу';
+    $('repeatBtn').textContent=repeated?'Заказ повторён ✓':'Повторить заказ';
+  }
+  function renderCats(c){
+    $('cats').innerHTML=Object.keys(MENU).map(function(k){return '<button class="'+(k===c?'on':'')+'">'+k+'</button>'}).join('');
+    $('cats').querySelectorAll('button').forEach(function(b){b.onclick=function(){renderCats(b.textContent)}});
+    $('items').innerHTML=MENU[c].map(function(i){return '<button class="item" data-id="'+i.id+'"><b>'+i.name+'</b><span>'+(i.pizza?'от ':'')+money(i.price)+'</span></button>'}).join('');
+    $('items').querySelectorAll('.item').forEach(function(b){b.onclick=function(){startTimer();tap();openItem(b.dataset.id)}});
+  }
+  function addLine(l){var ex=order.lines.filter(function(x){return sameLine(x,l)})[0];if(ex)ex.qty+=l.qty;else order.lines.push(l);renderCheck();}
+
+  function openItem(id){
+    var it=ALL[id];
+    if(!it.pizza){addLine({id:id,qty:1});toast('+ '+it.name);return;}
+    var st={size:'M',dough:'Традиционное',mods:[],qty:1};
+    function draw(){
+      var price=linePrice({id:id,size:st.size,dough:st.dough,mods:st.mods,qty:st.qty});
+      $('sItem').innerHTML='<h3>'+it.name+'</h3><div class="sub">Выбери размер, тесто и модификаторы — как сказал гость</div>'+
+        '<div class="grp">Размер</div><div class="opts" id="oSize">'+SIZES.map(function(s){return '<button data-v="'+s[0]+'" class="'+(st.size===s[0]?'on':'')+'">'+({S:'Маленькая',M:'Средняя',L:'Большая'})[s[0]]+'<small>'+s[1]+(s[2]?' · +'+s[2]:'')+'</small></button>'}).join('')+'</div>'+
+        '<div class="grp">Тесто</div><div class="opts" id="oDough">'+DOUGH.map(function(d){return '<button data-v="'+d+'" class="'+(st.dough===d?'on':'')+'">'+d+'</button>'}).join('')+'</div>'+
+        '<div class="grp">Модификаторы</div><div class="opts" id="oMods">'+it.mods.map(function(m){return '<button data-v="'+m[0]+'" class="'+(st.mods.indexOf(m[0])>=0?'on':'')+'">'+m[1]+'<small>'+(m[2]?'+'+m[2]+' ₸':'бесплатно')+'</small></button>'}).join('')+'</div>'+
+        '<div class="grp">Количество</div><div class="qty"><button id="qm">−</button><b>'+st.qty+'</b><button id="qp">+</button></div>'+
+        '<div class="row"><button class="btn ghost" id="iCancel">Отмена</button><button class="btn" id="iAdd">Добавить · '+money(price)+'</button></div>';
+      $('oSize').querySelectorAll('button').forEach(function(b){b.onclick=function(){st.size=b.dataset.v;tap();draw()}});
+      $('oDough').querySelectorAll('button').forEach(function(b){b.onclick=function(){st.dough=b.dataset.v;tap();draw()}});
+      $('oMods').querySelectorAll('button').forEach(function(b){b.onclick=function(){var v=b.dataset.v,i=st.mods.indexOf(v);if(i>=0)st.mods.splice(i,1);else st.mods.push(v);tap();draw()}});
+      $('qm').onclick=function(){if(st.qty>1){st.qty--;draw()}};$('qp').onclick=function(){st.qty++;draw()};
+      $('iCancel').onclick=close;$('iAdd').onclick=function(){addLine({id:id,size:st.size,dough:st.dough,mods:st.mods.slice(),qty:st.qty});close();toast('+ '+it.name)};
+    }
+    draw();$('mItem').classList.add('on');
+  }
+  function close(){document.querySelectorAll('.modal').forEach(function(m){m.classList.remove('on')})}
+  document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m&&m.id!=='mRes')close()})});
+
+  $('upsellBtn').onclick=function(){
+    if(upsold)return;startTimer();var u=TASKS[level].upsell;upsold=true;
+    addLine({id:u.id,qty:u.qty});haptic('success');toast('Гость: '+u.reply);renderCheck();
+  };
+  $('repeatBtn').onclick=function(){
+    if(!order.lines.length)return;repeated=true;tap();
+    toast('Вы повторили заказ — гость: «Да, всё верно»');renderCheck();
+  };
+
+  $('payBtn').onclick=function(){
+    var t=TASKS[level],method=null;
+    function draw(){
+      var tot=total();
+      $('sPay').innerHTML='<h3>Расчёт</h3><div class="sub">К оплате: <b>'+money(tot)+'</b></div>'+
+        (!upsold?'<div class="upsell">Подсказка: ты ещё не предложил гостю допродажу. Можно вернуться и предложить.</div>':'')+
+        '<div class="grp">Способ оплаты</div><div class="pay" id="pm">'+Object.keys(PAY).map(function(k){return '<button data-k="'+k+'" class="'+(method===k?'on':'')+'">'+PAY[k]+'</button>'}).join('')+'</div>'+
+        '<div class="cash'+(method==='cash'?' on':'')+'"><div class="grp">Гость дал</div><input id="given" inputmode="numeric" placeholder="Сумма, ₸"><div class="quick"><button data-v="10000">10 000</button><button data-v="20000">20 000</button><button data-v="exact">Без сдачи</button></div><div class="change" id="chg"></div><div class="err" id="eCash">Гость дал меньше суммы заказа</div></div>'+
+        '<div class="err" id="ePay">Выбери способ оплаты</div>'+
+        '<div class="row"><button class="btn ghost" id="pBack">Назад к заказу</button><button class="btn ok" id="pDone">Закрыть заказ</button></div>';
+      $('pm').querySelectorAll('button').forEach(function(b){b.onclick=function(){method=b.dataset.k;tap();draw()}});
+      var g=$('given');
+      function upd(){var v=parseInt((g.value||'').replace(/\D/g,''))||0;$('eCash').classList.remove('on');$('chg').innerHTML=v?(v>=tot?'Сдача: <b>'+money(v-tot)+'</b>':''):'';}
+      if(g){g.addEventListener('input',upd);document.querySelectorAll('.quick button').forEach(function(b){b.onclick=function(){g.value=b.dataset.v==='exact'?String(tot):b.dataset.v;upd()}});}
+      $('pBack').onclick=close;
+      $('pDone').onclick=function(){
+        if(!method){$('ePay').classList.add('on');haptic('error');return;}
+        var given=null;if(method==='cash'){given=parseInt((g.value||'').replace(/\D/g,''))||0;if(given<tot){$('eCash').classList.add('on');haptic('error');return;}}
+        payInfo={method:method,given:given};close();finish();
+      };
+    }
+    draw();$('mPay').classList.add('on');
+  };
+
+  function finish(){
+    clearInterval(tick);var secs=start?Math.round((Date.now()-start)/1000):0;
+    var t=TASKS[level],res=[],score=0,max=0;
+    function chk(ok,good,bad,w){max+=w;if(ok)score+=w;res.push([ok,ok?good:bad])}
+    chk(order.type===t.type,'Тип заказа: '+OT[t.type],'Тип заказа: нужно «'+OT[t.type]+'», а выбрано «'+(OT[order.type]||'не выбран')+'»',15);
+    var want=t.want.map(function(w){return Object.assign({},w,{mods:w.mods||[]})});
+    var got=order.lines.filter(function(l){return !(upsold&&l.id===t.upsell.id&&!want.some(function(w){return w.id===l.id}))}).map(function(l){return Object.assign({},l,{mods:l.mods||[]})});
+    var miss=[],extra=got.slice();
+    want.forEach(function(w){var i=-1;extra.some(function(x,k){if(sameLine(x,w)&&x.qty===w.qty){i=k;return true}});if(i>=0)extra.splice(i,1);else miss.push(w)});
+    function desc(l){var it=ALL[l.id],s=(l.qty>1?l.qty+'× ':'')+it.name;if(it.pizza){s+=' ('+({S:'маленькая',M:'средняя',L:'большая'})[l.size]+', '+l.dough.toLowerCase();l.mods.forEach(function(m){s+=', '+it.mods.filter(function(x){return x[0]===m})[0][1].toLowerCase()});s+=')'}return s}
+    chk(!miss.length&&!extra.length,'Состав заказа без ошибок',
+      'Ошибки в составе: '+(miss.length?'не хватает — '+miss.map(desc).join('; '):'')+(miss.length&&extra.length?'. ':'')+(extra.length?'лишнее или неверно — '+extra.map(desc).join('; '):''),40);
+    chk(upsold,'Предложил допродажу','Не предложил допродажу — минус к среднему чеку',15);
+    chk(repeated,'Повторил заказ гостю','Не повторил заказ — ошибка дошла бы до кухни',10);
+    chk(payInfo.method===t.pay,'Оплата: '+PAY[t.pay],'Оплата: гость просил «'+PAY[t.pay]+'», а выбрано «'+PAY[payInfo.method]+'»',10);
+    if(t.pay==='cash'&&payInfo.method==='cash'){var ch=payInfo.given-total();chk(payInfo.given===t.cash,'Принял '+money(t.cash)+', сдача '+money(ch),'Гость давал '+money(t.cash)+', а введено '+money(payInfo.given),10);}
+    var pct=Math.round(score/max*100);
+    var fast=secs<=(level===2?120:75);
+    if(best[level]==null||pct>best[level]){best[level]=pct;try{localStorage.setItem('pos-best',JSON.stringify(best))}catch(e){}}
+    haptic(pct>=80?'success':'error');
+    var rcpt='ЗАКАЗ № '+(100+Math.floor(Math.random()*900))+' · '+(OT[order.type]||'—')+'\n'+'-'.repeat(30)+'\n'+order.lines.map(function(l){var n=l.qty+'× '+ALL[l.id].name;return n+' '.repeat(Math.max(1,22-n.length))+linePrice(l)}).join('\n')+'\n'+'-'.repeat(30)+'\nИТОГО'+' '.repeat(17)+total()+'\n'+PAY[payInfo.method]+(payInfo.given?' · '+payInfo.given+' · сдача '+(payInfo.given-total()):'');
+    $('sRes').innerHTML='<div class="res"><h3>'+(pct>=80?'Заказ пробит!':'Есть ошибки')+'</h3><div class="big">'+pct+'%</div><div class="sub">Время: '+Math.floor(secs/60)+':'+('0'+secs%60).slice(-2)+(fast?' · быстро 👍':' · можно быстрее')+'</div>'+
+      '<ul>'+res.map(function(r){return '<li class="'+(r[0]?'g':'b')+'"><i>'+(r[0]?'✓':'✕')+'</i><span>'+r[1]+'</span></li>'}).join('')+'</ul>'+
+      '<div class="receipt">'+rcpt.replace(/</g,'&lt;')+'</div>'+
+      '<div class="row"><button class="btn ghost" id="rAgain">Ещё раз</button>'+(level<TASKS.length-1?'<button class="btn" id="rNext">Следующий уровень</button>':'<button class="btn" id="rBack">Готово</button>')+'</div></div>';
+    $('mRes').classList.add('on');
+    $('rAgain').onclick=function(){close();reset()};
+    var n=$('rNext');if(n)n.onclick=function(){close();level++;reset()};
+    var b=$('rBack');if(b)b.onclick=function(){close();location.href='index.html'};
+  }
+
+  reset();
+})();
+</script>
+</body>
+</html>
